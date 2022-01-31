@@ -110,7 +110,12 @@ if do_track_density:
         ds_ = ds
     if not os.path.exists(ofile):
         density = tc_density(ds_, lowpass_on=True, genesis_on=False)
-        genesis_density = tc_density(ds_, lowpass_on=True, genesis_on=True)
+        if minMaxWindspeed is None: 
+            #genesis location is the first track point
+            genesis_density = tc_density(ds_, lowpass_on=True, genesis_on=True) 
+        else: 
+            #genesis location is the first track point of >minMaxWindspeed and warm core
+            genesis_density = tc_density(ds_, lowpass_on=True, genesis_on=True, genesis_condition=(ds.windmax>minMaxWindspeed)&(ds.tm>0))
         ds_density = xr.Dataset(dict(density=density,
                                 density_g=genesis_density))
 

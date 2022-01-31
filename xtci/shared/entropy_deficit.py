@@ -60,7 +60,7 @@ def moist_entropy(T, p, RH=None, q=None):
 
     return s
 
-def entropy_deficit(sst, slp, Tb, RHb, p_m, Tm, RHm):
+def entropy_deficit(sst, slp, Tb, RHb, p_m, Tm, RHm, forGPI2010=False):
     '''calculate entropy deficity defined in Tang and Emanuel, 2012.
     sst: sea surface temperature (in Kelvin);
     slp: sea level pressure (in Pa);
@@ -68,14 +68,20 @@ def entropy_deficit(sst, slp, Tb, RHb, p_m, Tm, RHm):
     RHb: boundary layer relative humidity (0-1);
     p_m: middle troposphere pressure level (usually 6e4 Pa);
     Tm: middle troposphere air temperature;
-    RHm: middle troposphere relative humidity (0-1).'''
+    RHm: middle troposphere relative humidity (0-1);
+    forGPI2010 (default=False): calculate entropy deficit used in GPI (Emanuel 2010, use s_b instead of s_m_star in the numerator);
+        if False (default), calculate entropy deficit used in ventilation index from Tang and Emanuel 2012.'''
     s_sst_star = moist_entropy(T=sst, p=slp, RH=1)
     s_b        = moist_entropy(T=Tb, p=slp, RH=RHb)
     s_m_star   = moist_entropy(T=Tm, p=p_m, RH=1)
     s_m        = moist_entropy(T=Tm, p=p_m, RH=RHm)
 
-    chi = (s_m_star - s_m)/(s_sst_star - s_b).pipe(lambda x: x.where(x>0)) # exclude values <= 0 
-    chi.attrs['long_name'] = 'entropy deficit'
+    if forGPI2010:
+        chi = (s_b - s_m)/(s_sst_star - s_b).pipe(lambda x: x.where(x>0)) # exclude values <= 0 
+        chi.attrs['long_name'] = 'entropy deficit in GPI from Emanuel 2010'
+    else:
+        chi = (s_m_star - s_m)/(s_sst_star - s_b).pipe(lambda x: x.where(x>0)) # exclude values <= 0 
+        chi.attrs['long_name'] = 'entropy deficit in ventilation index from Tang and Emanuel 2012'
 
     return chi
 

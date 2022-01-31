@@ -1,15 +1,24 @@
 #!/usr/bin/env python
 # Wenchang Yang (wenchang@princeton.edu)
 # Sat Aug 24 15:02:58 EDT 2019
+#readme: update from ERA5.py: potential_intensity -> potential_intensity_tcpypi; entropy_deficit also updated with new arg forGPI2010
+if __name__ == '__main__':
+    import sys
+    from misc.timer import Timer
+    tt = Timer('start ' + ' '.join(sys.argv))
 import os.path#, os, sys
 import xarray as xr, numpy as np#, pandas as pd
 #import matplotlib.pyplot as plt
 from numpy import absolute, exp, log
 
 from xtci.shared.entropy_deficit import entropy_deficit
-from xtci.shared.potential_intensity import potential_intensity
+#from xtci.shared.potential_intensity import potential_intensity
+from xtci.shared.potential_intensity_tcpypi import potential_intensity 
 from xtci.shared.wind_shear import wind_shear
 from xtci.shared.absolute_vorticity import absolute_vorticity
+
+if __name__ == '__main__':
+    tt.check('end import')
 
 def do_tci(year, odir=None):
     '''calculate TC indices (e.g. GPI, VI) and related variables given ERA5 monthly reanalysis'''
@@ -28,7 +37,8 @@ def do_tci(year, odir=None):
     slp = xr.open_dataarray(ifile) # units Pa
     
     # t2m
-    ifile = f'/tigress/wenchang/data/era5/analysis/2m_temperature/monthly/era5.2m_temperature.monthly.{year:04d}.nc'
+    #ifile = f'/tigress/wenchang/data/era5/analysis/2m_temperature/monthly/era5.2m_temperature.monthly.{year:04d}.nc'
+    ifile = f'/tigress/wenchang/data/era5/raw/monthly/2m_temperature/era5.2m_temperature.monthly.{year:04d}.nc'
     t2m = xr.open_dataarray(ifile) # units K
 
     # RH2m
@@ -84,6 +94,31 @@ def do_tci(year, odir=None):
                 unlimited_dims='time')
         print('[saved]:', ofile)
 
+    # entropy deficit for GPI2010: (s_b - s_m)/(s_sst_star - s_b)
+    print('entropy deficit for GPI2010')
+    dname = 'chi_sb'
+    ofile = os.path.join(odir, ibasename.replace('.nc', f'.{dname}.nc') )
+    if os.path.exists(ofile):
+        chi_sb = xr.open_dataset(ofile)[dname]
+        print('[opened]:', ofile)
+    else:
+        p_m = 600*100 # Pa
+        chi_sb = entropy_deficit(
+            sst=sst,
+            slp=slp,
+            Tb=t2m,
+            RHb=RH2m/100,
+            p_m=p_m,
+            Tm=Ta.sel(level=p_m/100).drop('level'),
+            RHm=RH.sel(level=p_m/100).drop('level')/100,
+            forGPI2010=True
+            ).where(is_ocean)
+        chi_sb.to_dataset(name=dname) \
+            .to_netcdf(ofile, 
+                encoding={dname: {'dtype': 'float32', 'zlib': True, 'complevel': 1}},
+                unlimited_dims='time')
+        print('[saved]:', ofile)
+
     # potential intensity
     print('potential intensity')
     ofile = os.path.join(odir, ibasename.replace('.nc', f'.PI.nc') )
@@ -92,6 +127,7 @@ def do_tci(year, odir=None):
         print('[opened]:', ofile)
     else:
         reverse_plevels = lambda x: x.isel(level=slice(-1, None, -1)) # 
+        """
         PI = potential_intensity(
             sst=sst,
             slp=slp.where(is_ocean),
@@ -99,6 +135,15 @@ def do_tci(year, odir=None):
             T=Ta.pipe(reverse_plevels).where(is_ocean),
             q=q.pipe(reverse_plevels).where(is_ocean),
             dim_x='longitude', dim_y='latitude', dim_z='level'
+            )
+        """
+        PI = potential_intensity(
+            sst=sst,
+            slp=slp.where(is_ocean),
+            p=Ta.level.pipe(reverse_plevels)*100,
+            T=Ta.pipe(reverse_plevels).where(is_ocean),
+            q=q.pipe(reverse_plevels).where(is_ocean),
+            dim_z='level'
             )
         encoding = {dname:{'dtype': 'float32', 'zlib': True, 'complevel': 1} 
             for dname in ('pmin', 'vmax')}
@@ -150,7 +195,7 @@ def do_tci(year, odir=None):
         print('[opened]:', ofile)
     else:
         eta = absolute_vorticity(
-            vort850=vort.sel(level=850),
+            vort850=vort.sel(level=850).drop('level'),
             lat=vort.latitude
             )
         eta.to_dataset(name=dname) \
@@ -190,7 +235,7 @@ def do_tci(year, odir=None):
             * (PI.vmax/70)**3 \
             * (1+0.1*Vshear)**(-2)
         GPI.attrs['long_name'] = 'Genesis Potential Index'
-        GPI.attrs['history'] = '|10**5\eta|**(3/2) * (H/50)**3 * (Vpot/70)**3 * (1+0.1*Vshear)**(-2)'
+        GPI.attrs['history'] = '|10**5\eta|**(3/2) * (RH/50)**3 * (Vpot/70)**3 * (1+0.1*Vshear)**(-2)'
         GPI.to_dataset(name=dname) \
             .to_netcdf(ofile, 
                 encoding={dname: {'dtype': 'float32', 'zlib': True, 'complevel': 1}},
@@ -206,7 +251,7 @@ def do_tci(year, odir=None):
         print('[opened]:', ofile)
     else:
         GPI2010 = absolute(eta)**3 \
-            * chi.where(chi>0)**(-4/3) \
+            * chi_sb.where(chi_sb>0)**(-4/3) \
             * (PI.vmax - 35).clip(min=0)**2 \
             * (25 + Vshear)**(-4)
         GPI2010.attrs['long_name'] = 'Genesis Potential Index of Emanuel2010'
@@ -220,6 +265,14 @@ def do_tci(year, odir=None):
 if __name__ == '__main__':
     #year = 1979
     #do_tci(year, odir='/tigress/wenchang/data/era5/analysis/TCI/')
-    years = range(1979, 2019)
-    for year in years:
-        do_tci(year, odir='/tigress/wenchang/data/era5/analysis/TCI/')
+    #years = range(1979, 1979+1)
+    odir = '/tigress/wenchang/data/era5/analysis/TCI_v202201/'
+    if len(sys.argv)>1:
+        year = int(sys.argv[1])
+        do_tci(year, odir=odir)
+    else:
+        years = range(1979, 2020+1)
+        for year in years:
+            do_tci(year, odir=odir)
+
+    tt.check('**done**')

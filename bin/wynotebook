@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+filename=$1
+title=$(basename $filename .ipynb)
+filename=$title.ipynb
+if [ ! -f $filename ]; then
+   cat /tigress/wenchang/analysis/template.ipynb | sed s/Title/$title/ > $filename 
+   echo "[File created]: $filename"
+else
+    echo "[File exists]: $filename"
+fi

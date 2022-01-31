@@ -6,15 +6,15 @@
 #import matplotlib.pyplot as plt
 import numpy as np, xarray as xr
 
-from xtci.shared.pcmin import pcmin3
+from xtci.shared.pcmin import pcmin3 #may need to run "f2py -c pcmin.f90 -m pcmin" to get "pcmin.so" before import
 
 def potential_intensity(sst, slp, p, T, q, dim_x, dim_y, dim_z):
     '''xarray-wrapper of the FORTRAN module pcmin3.
-    sst: sea surface temperature;
-    slp: seal level pressure;
-    p: pressure levels;
-    T: temperature;
-    q: specific humidity;
+    sst: sea surface temperature in K;
+    slp: seal level pressure in Pa;
+    p: pressure levels in hPa(mb);
+    T: temperature in K;
+    q: specific humidity in kg/kg;
     xname: dim name along the x/lon direction;
     yname: dim name along the y/lat direction;
     zname: dim name along the z/p direction.

@@ -25,8 +25,8 @@ def mycorr(x, y):
     return (xym - xm*ym)/np.sqrt( (xxm - xm*xm)*(yym - ym*ym) )
     
 @guvectorize(["f8[:],f8[:], b1[:],f8[:],f8[:],f8[:],i8[:],f8[:],f8[:],f8[:]"], 
-    "(n),(n),()->(),(),(),(),(),(),()", target='parallel')
-def linregress_core(x, y, ess_on, slope, intercept, r, dof, tvalue, slope_stderr, intercept_stderr):#, predict_stderr):
+    "(n),(n),()->(),(),(),(),(),(),()", nopython=True, target='parallel')
+def linregress_core(y, x, ess_on, slope, intercept, r, dof, tvalue, slope_stderr, intercept_stderr):#, predict_stderr):
     """calculate parameters associated with linear relationship between x and y.
     see https://en.wikipedia.org/wiki/Simple_linear_regression"""
     xm = np.mean(x)
@@ -77,12 +77,12 @@ def linregress_core(x, y, ess_on, slope, intercept, r, dof, tvalue, slope_stderr
 
     #return slope, intercept, r, dof, tvalue, slope_stderr, intercept_stderr, predict_stderr
 
-def linregress_np(x, y, ess_on=False, alpha=0.05):
+def linregress_np(y, x, ess_on=False, alpha=0.05):
     """wrap around linregress_core and use scipy.stats.t.cdf to calculate pvalue and t_alpha"""
     x_ = x.astype('float64')
     y_ = y.astype('float64')
     #slope, intercept, r, dof, tvalue, slope_stderr, intercept_stderr, predict_stderr = linregress_core(x_, y_, ess_on)
-    slope, intercept, r, dof, tvalue, slope_stderr, intercept_stderr = linregress_core(x_, y_, ess_on)
+    slope, intercept, r, dof, tvalue, slope_stderr, intercept_stderr = linregress_core(y_, x_, ess_on)
     pvalue = 2*stu.cdf(-np.abs(tvalue), dof)
     t_alpha = stu.ppf(1-alpha/2, dof)
     
@@ -109,7 +109,7 @@ def linregress(da_y, da_x, dim=None, ess_on=False, alpha=0.05, predict_stderr_on
     #use xr.apply_ufunc to accept dataarray as input
     slope, intercept, r, dof, tvalue, slope_stderr, intercept_stderr, pvalue, t_alpha = xr.apply_ufunc(
         linregress_np,
-        da_x, da_y,
+        da_y, da_x,
         input_core_dims=[[dim], [dim]],
         output_core_dims=[[], [], [], [], [], [], [], [], []],
         dask='allowed', kwargs={'ess_on': ess_on, 'alpha': alpha})
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     x = ds.nino34.values
     y = ds.iod.values
     
-    slope, intercept, r, dof, tvalue, slope_stderr, intercept_stderr, pvalue, t_alpha = linregress_np(x, y)
+    slope, intercept, r, dof, tvalue, slope_stderr, intercept_stderr, pvalue, t_alpha = linregress_np(y, x)
     ds_ = linregress(ds.iod, ds.nino34)
     print(f'{slope = }; {intercept = }; {r = }; {dof = }; {tvalue = }; {slope_stderr = }; {intercept_stderr = }; {pvalue = }; {t_alpha = }')
 

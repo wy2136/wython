@@ -8,6 +8,7 @@ import sys, os.path, os, glob, datetime
 import xarray as xr, numpy as np, pandas as pd, matplotlib.pyplot as plt
 #more imports
 import pyleoclim as pyleo
+from .shared import da2series
 #
 if __name__ == '__main__':
     tt.check('end import')
@@ -23,8 +24,8 @@ def correlation_yx(day, dax, **kws):
     dim = dax.dims[0]
 
     #create pyleoclim.Series for day and dax
-    y = pyleo.Series(time=day[dim].values, value=day.values)
-    x = pyleo.Series(time=dax[dim].values, value=dax.values)
+    y = da2series(day) #y = pyleo.Series(time=day[dim].values, value=day.values)
+    x = da2series(dax) #x = pyleo.Series(time=dax[dim].values, value=dax.values)
 
     #do the calculation
     result = y.correlation(x, **kws)

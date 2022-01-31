@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+import datetime, os, sys, os.path
+#time_string = datetime.datetime.now().strftime('.%Y-%m-%dT%H:%M:%S')
+fmt = '%Y-%m-%d'
+
+for ifile in sys.argv[1:]:
+    mtime = os.path.getmtime(ifile)
+    mtime_s = datetime.datetime.fromtimestamp(mtime).strftime(fmt)
+    #ofile = '_' + ifile + time_string
+    ofile = f'{ifile}.{mtime_s}'
+    os.rename(ifile, ofile) 
+    print('[Rename]:', ifile, '>', ofile)

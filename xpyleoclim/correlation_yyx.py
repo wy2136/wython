@@ -8,6 +8,7 @@ import sys, os.path, os, glob, datetime
 import xarray as xr, numpy as np, pandas as pd, matplotlib.pyplot as plt
 #more imports
 import pyleoclim as pyleo
+from .shared import da2series
 #
 if __name__ == '__main__':
     tt.check('end import')
@@ -29,10 +30,10 @@ def correlation_yyx(dayy, dax, **kws):
     dayy_valid = dayy_stack.isel(s=isValid)
     
     #create pyleoclim.Series for dax and pyleoclim.MultipleSeries for dayy
-    x = pyleo.Series(time=dax[dim].values, value=dax.values)
+    x = da2series(dax)#x = pyleo.Series(time=dax[dim].values, value=dax.values)
     ts_list = []
     for ii in range(dayy_valid.s.size):
-        ts = pyleo.Series(time=dayy_valid[dim].values, value=dayy_valid.isel(s=ii).values)
+        ts = da2series(dayy_valid.isel(s=ii))#ts = pyleo.Series(time=dayy_valid[dim].values, value=dayy_valid.isel(s=ii).values)
         ts_list.append(ts)
     yy = pyleo.MultipleSeries(ts_list)
 
@@ -46,10 +47,12 @@ def correlation_yyx(dayy, dax, **kws):
     zz = isValid*0 + np.nan # initialize
     zz[isValid.values] = result.r
     r = xr.DataArray(zz, dims='s', coords=[isValid.s]).unstack()
+    r.attrs['long_name'] = 'correlation coefficient'
     #pvalue p
     zz = isValid*0 + np.nan # initialize
     zz[isValid.values] = result.p
     p = xr.DataArray(zz, dims='s', coords=[isValid.s]).unstack()
+    p.attrs['long_name'] = 'p-value'
     #bool signif
     zz = isValid*0 + np.nan # initialize
     zz[isValid.values] = result.signif
@@ -73,7 +76,7 @@ if __name__ == '__main__':
     dayy = ds_.sst.sel(lat=slice(-10,10))
     dax = ds_.nino34
     print('\ncorrelation of Nino3.4 and tropical SST:\n')
-    rr = correlation_yyx(dayy, dax, seed=0)
+    rr = correlation_yyx(dayy, dax, seed=0) 
     rr.r.plot()
     rr.signif.where(rr.signif==1).plot.contourf(colors='none', hatches=['///'], add_colorbar=False)
 

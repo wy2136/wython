@@ -17,7 +17,11 @@ if __name__ == '__main__':
 #start from here
 def correlation(da1, da2, **kws):
     """given xr.DataArray da1(1D or >1D) and da2(1D or >1D), calculate the correlation 
-    along the common dim using pyleoclim.Series.correlation or pyleoclim.MultipleSeries.correlation"""
+    along the common dim using pyleoclim.Series.correlation or pyleoclim.MultipleSeries.correlation.
+    
+    For possbile kws, see:
+    https://pyleoclim-util.readthedocs.io/en/latest/core/ui.html#pyleoclim.core.ui.MultipleSeries.correlation
+    """
 
     if da1.ndim==1 and da2.ndim==1: #both input arrays are 1D
         return correlation_yx(da1, da2, **kws)

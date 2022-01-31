@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+if [ ! -f $1 ]; then
+    echo "#!/usr/bin/env bash" > $1
+    echo "# Wenchang Yang (wenchang@princeton.edu)" >> $1
+    echo "# $(date)" >> $1
+    echo "set -v" >> $1
+    echo "set -e" >> $1
+    echo "" >> $1
+    echo "collect=/tigress/wenchang/data/cmip6/xcmip6/cmip6_collect.py" >> $1
+    echo "regrid=/tigress/wenchang/data/cmip6/xcmip6/cmip_regrid.py" >> $1
+    echo "concat_models=/tigress/wenchang/data/cmip6/xcmip6/cmip_concatmodels.py" >> $1
+    echo "" >> $1
+    echo "python \$collect" >> $1
+    echo "python \$regrid" >> $1
+    echo "#python \$concat_models --start=1850 --stop=2014 #--maxmiss=10 #--plev=850" >> $1
+    chmod u+x $1
+    echo "[File created]: $1"
+else
+    echo "[File exists]: $1"
+fi

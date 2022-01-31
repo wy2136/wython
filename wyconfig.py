@@ -8,6 +8,7 @@ print(f'**wython plot settings ({__file__})**')
 import os, os.path, datetime
 import xarray as xr
 import matplotlib.pyplot as plt
+from cycler import cycler
 
 #rcParams
 """
@@ -25,6 +26,8 @@ plt.rc('figure', dpi=128, figsize=[6.4, 6.4*9/16])
 plt.rc('figure.constrained_layout', use=True)
 #axes
 plt.rc('axes.spines', right=False, top=False)
+#pro_cycle
+plt.rc('axes', prop_cycle=cycler(linestyle=['-', '--', ':', '-.'])*(plt.rcParams['axes.prop_cycle']))
 #grid
 plt.rc('axes', grid=True)
 plt.rc('grid', linestyle='--', alpha=0.5)
@@ -34,7 +37,7 @@ plt.rc('legend', frameon=False)
 plt.rc('hatch', color='gray', linewidth=0.5)
 print('plt.rcParams:')
 paramlist = ['figure.dpi', 'figure.figsize', 'figure.constrained_layout.use',
-    'axes.spines.right', 'axes.spines.top',
+    'axes.spines.right', 'axes.spines.top', 'axes.prop_cycle',
     'axes.grid', 'grid.linestyle', 'grid.alpha',
     'legend.frameon', 
     'hatch.color', 'hatch.linewidth'
@@ -61,7 +64,8 @@ print("    constrained_layout_off(): plt.rcParams['figure.constrained_layout.use
 # define wysavefig function: archive fig if exists
 def wysavefig(figname, **kws):
     """updated version of plt.savefig"""
-    if os.path.exists(figname): #archive by appending date info to figname if figname exists
+    overwritefig = kws.pop('overwritefig', False)
+    if os.path.exists(figname) and not overwritefig: #archive by appending date info to figname if figname exists
         mtime = datetime.datetime.fromtimestamp( os.path.getmtime(figname) ).strftime('%Y-%m-%d')
         figname_archive = figname + '.' + mtime
         if os.path.isdir('_history'):#move the archived file to the _history dir if it exists
