@@ -9,3 +9,4 @@ My personal Python packages.
 * [xaddon](https://github.com/wy2136/xaddon)
 * [xfilter](https://github.com/wy2136/xfilter)
 * [xlearn](https://github.com/wy2136/xlearn)
+* [xtci](https://github.com/wy2136/xtci)
