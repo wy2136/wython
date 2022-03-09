@@ -18,6 +18,9 @@ def tracks_in_region(ds, region):
     **input**:
         ds: tracks dataset;
         region: Nx2 array as input for matplotlib.path.Path. 
+            One example is boundary coords from shapefile: 
+                shdf = salem.read_shapefile(ishapefile)
+                region = np.array( shdf.geometry[0].boundary.coords )
     **return**:
         in_region: DataArray of in in_region mask (bool values)'''
 #     ds = xtc.tc_tracks('CTL1860_noleap_tigercpu_intelmpi_18_576PE', years=range(1,11))

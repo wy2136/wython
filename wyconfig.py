@@ -64,6 +64,7 @@ print("    constrained_layout_off(): plt.rcParams['figure.constrained_layout.use
 # define wysavefig function: archive fig if exists
 def wysavefig(figname, **kws):
     """updated version of plt.savefig"""
+    bbox_inches = kws.pop('bbox_inches', 'tight')
     overwritefig = kws.pop('overwritefig', False)
     if os.path.exists(figname) and not overwritefig: #archive by appending date info to figname if figname exists
         mtime = datetime.datetime.fromtimestamp( os.path.getmtime(figname) ).strftime('%Y-%m-%d')
@@ -73,7 +74,7 @@ def wysavefig(figname, **kws):
         os.rename(figname, figname_archive)
         print('[archived]:', figname, '->', figname_archive)
     #savefig
-    plt.savefig(figname, **kws)
+    plt.savefig(figname, bbox_inches=bbox_inches, **kws)
     print('[saved]:', figname)
 print('[created]: def wysavefig(figname, **kws):')
 # ipython setting
