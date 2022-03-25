@@ -13,10 +13,11 @@ if __name__ == '__main__':
     tt.check('end import')
 #
 #start from here
-def load(dsname='IBTrACS'):
+def load_tracks(dsname='IBTrACS'):
     '''load TC tracks dataset by its name. Default is IBTrACS.'''
     if dsname.lower() == 'ibtracs':
-        ifile = '/tigress/wenchang/data/ibtracs/v04r00/analysis/v2/IBTrACS.ALL.v04r00.tracksByYear.1980-2021.nc'
+        #ifile = '/tigress/wenchang/data/ibtracs/v04r00/analysis/v2/IBTrACS.ALL.v04r00.tracksByYear.1980-2019.nc'
+        ifile = '/tigress/wenchang/data/ibtracs/v04r00/analysis/v2/IBTrACS.ALL.v04r00.2022-01-25.tracksByYear.1980-2021.nc'
 
     return xr.open_dataset(ifile)
  

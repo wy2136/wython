@@ -56,12 +56,24 @@ def trackplot(ds, **kwargs):
         lines = trackplot(ds.isel(year=slice(0,10)), alpha=1)
         plt.colorbar(lines.isel(year=0, storm=0).item())
     '''    
+    add_colorbar = kwargs.pop('add_colorbar', True)
+    ax = kwargs.pop('ax', plt.gca())
+
+    #simple version track plot, fast speed
+    ezplot = kwargs.pop('ezplot', False)
+    if ezplot:
+        ax.plot(ds.lon.values.flat, ds.lat.values.flat, **kwargs)    
+        return
+
+    #complex version track plot, slow speed
     lines = xr.apply_ufunc(single_track_plot,
                           ds.lon, ds.lat, ds.windmax,
                           input_core_dims=[['stage'], ['stage'], ['stage']],
                           vectorize=True,
                           kwargs=kwargs)
-    ax = kwargs.pop('ax', plt.gca())
     ax.autoscale()
+    if add_colorbar:
+        #plt.colorbar(lines.isel(year=0, storm=0).item())
+        plt.colorbar(lines.values.flat[0])
     
     return lines

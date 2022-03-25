@@ -13,7 +13,8 @@ from .ace import tc_ace, tc_ace_density
 from .density import tc_density
 from .plot import trackplot
 from .mask import get_landflag
-from regions import tracks_in_region
-from distance import tc_distance
+from .regions import tracks_in_region
+from .distance import tc_distance
+from .dataset import load_tracks
 
 
