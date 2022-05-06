@@ -76,6 +76,13 @@ def yticks2lat(ax=None, new_yticks=None):
             new_yticklabels[i] = str(int(y)) + '$^{\circ}$'
     ax.set_yticklabels(new_yticklabels)
 #
+def plot_lonlatbox(lon0, lon1, lat0, lat1, **kws):
+    """plot lon/lat box given lon range lon0 to lon1 and lat range lat0 to lat1"""
+    ax = kws.pop('ax', plt.gca())
+    lon = [lon0, lon1, lon1, lon0, lon0]
+    lat = [lat0, lat0, lat1, lat1, lat0]
+    ax.plot(lon, lat, **kws)
+
 # ######## plot basemap
 def mapplot(lon=None, lat=None, **kw):
     '''Plot the basemap using coast data from Matlab.
@@ -96,7 +103,7 @@ def mapplot(lon=None, lat=None, **kw):
         fill_continents: boolean, default is False.
         continents_color: color of continents, default is 0.33.
         coastlines_color: color of coastlines, default is 0.33.
-        coastlines_width: line width of coastlines, default is 1.
+        coastlines_width: line width of coastlines, default is 0.5.
     '''
     if lon is None:
         if plt.get_fignums():# figures already exist
@@ -115,6 +122,8 @@ def mapplot(lon=None, lat=None, **kw):
     if ax is None:
         ax = plt.gca()
     #plt.sca(ax)
+    xticks = kw.pop('xticks', ax.get_xticks())
+    yticks = kw.pop('yticks', ax.get_yticks())
 
     # get grid edges
     lon_edge, lat_edge = _get_grid_edges(lon, lat)
@@ -125,6 +134,7 @@ def mapplot(lon=None, lat=None, **kw):
     lonlatbox = kw.pop('lonlatbox', None)
     if lonlatbox is not None:
         lon0, lon1, lat0, lat1 = lonlatbox # unpack lonlatbox
+        """
         lon_ = np.array([
             np.linspace(lon0, lon1, 100),
             lon1*np.ones(100),
@@ -137,18 +147,20 @@ def mapplot(lon=None, lat=None, **kw):
             lat1*np.ones(100),
             np.linspace(lat1, lat0, 100)
             ]).ravel()
+        """
         lonlatbox_kw = kw.pop('lonlatbox_kw', {})
-        lonlatbox_color = kw.pop('lonlatbox_color', 'k')
+        lonlatbox_color = kw.pop('lonlatbox_color', 'gray')
         lonlatbox_color = lonlatbox_kw.pop('color', lonlatbox_color)
-        ax.plot(lon_, lat_, color=lonlatbox_color, **lonlatbox_kw)
+        #ax.plot(lon_, lat_, color=lonlatbox_color, **lonlatbox_kw)
+        plot_lonlatbox(lon0, lon1, lat0, lat1, ax=ax, color=lonlatbox_color, **lonlatbox_kw)
 
     # plot coast lines
     # load coast data
     lonlon, latlat = _load_coast()
     # fill continents or plot coast lines
     fill_continents = kw.pop('fill_continents', False)
-    xticks = kw.pop('xticks', np.arange(-180, 360, 60))
-    yticks = kw.pop('yticks', np.arange(-90, 91, 30))
+    #xticks = kw.pop('xticks', np.arange(-180, 360, 60))
+    #yticks = kw.pop('yticks', np.arange(-90, 91, 30))
     #xticks = kw.pop('xticks', None)
     #yticks = kw.pop('yticks', None)
     if fill_continents:
@@ -179,7 +191,7 @@ def mapplot(lon=None, lat=None, **kw):
     else:
         # plot coastlines
         coastlines_color = kw.pop('coastlines_color', '0.33')
-        coastlines_width = kw.pop('linewidth', 1)
+        coastlines_width = kw.pop('linewidth', 0.5)
         coastlines_width = kw.pop('coastlines_width', coastlines_width)
         ax.plot(lonlon, latlat,
             color=coastlines_color, linewidth=coastlines_width,

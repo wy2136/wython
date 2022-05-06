@@ -25,6 +25,7 @@ if plt.rcParams['figure.constrained_layout.use']:
 plt.rc('figure', dpi=128, figsize=[6.4, 6.4*9/16])
 plt.rc('figure.constrained_layout', use=True)
 #axes
+plt.rc('axes', titlelocation='left')
 plt.rc('axes.spines', right=False, top=False)
 #pro_cycle
 plt.rc('axes', prop_cycle=cycler(linestyle=['-', '--', ':', '-.'])*(plt.rcParams['axes.prop_cycle']))
@@ -37,7 +38,7 @@ plt.rc('legend', frameon=False)
 plt.rc('hatch', color='gray', linewidth=0.5)
 print('plt.rcParams:')
 paramlist = ['figure.dpi', 'figure.figsize', 'figure.constrained_layout.use',
-    'axes.spines.right', 'axes.spines.top', 'axes.prop_cycle',
+    'axes.titlelocation', 'axes.spines.right', 'axes.spines.top', 'axes.prop_cycle',
     'axes.grid', 'grid.linestyle', 'grid.alpha',
     'legend.frameon', 
     'hatch.color', 'hatch.linewidth'

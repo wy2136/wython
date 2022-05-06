@@ -125,6 +125,7 @@ def main(html_file='index.html', img_width=800):
                 label_id = '_'.join(label.split(' '))
                 f.write(f'<a class=" list-group-item list-group-item-text" href="#{label_id}">{label}</a>\n')
         f.write(f'<a class=" list-group-item list-group-item-text" href="#All_Files">All Files</a>\n')
+        f.write(f'<a class=" list-group-item list-group-item-text" href="#All_Files_by_Time">All Files by Time</a>\n')
         f.write('</div> <!-- list-group -->\n')
         f.write('\n')
             
@@ -183,6 +184,25 @@ def main(html_file='index.html', img_width=800):
                 f.write(s)
             f.write('</div> <!-- list-group -->\n')
             f.write('\n')
+
+        # List of all files by modified time
+        label = 'All Files by Time'
+        ifiles = [ifile for ifile in glob.glob('*') if not os.path.isdir(ifile)]
+        if ifiles:
+            f.write(f'<h3 id="All_Files_by_Time">{label}</h3>\n')
+            f.write('<div class="list-group">\n')
+            #ifiles.sort(key=lambda x: '.'.join(x.split('.')[:-1]).lower() if '.' in x else x.lower())# sort by file names without the extension
+            ifiles.sort(key=lambda x: os.path.getmtime(x), reverse=True)# sort by file modified time 
+            for ifile in ifiles:
+                if ifile.endswith('.nc'):
+                    ifile_size = get_file_size(ifile)
+                    s = f'<li class="list-group-item">{ifile}: <a href="{ifile}">{ifile_size}</a></li>\n'
+                else:
+                    s = f'<a class="list-group-item" href="{ifile}">{ifile}</a>\n'
+                f.write(s)
+            f.write('</div> <!-- list-group -->\n')
+            f.write('\n')
+
 
         f.write('</div> <!-- container -->\n')
         f.write('</body>\n')

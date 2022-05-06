@@ -129,14 +129,19 @@ def gev_return_period(xx, mu, sigma, xi):
     """GEV return period"""
     #return 1/( 1 - gev_cdf(xx, mu, sigma, xi) )
     return 1/gev_exceedance_prob(xx, mu, sigma, xi)
-def plot_return_period(mu=0, sigma=1, xi=0, lower=1/.99, upper=1000, ax=None, **kws):
+def plot_return_period(mu=0, sigma=1, xi=0, lower=1/.99, upper=1000, ax=None, x='rp', **kws):
     if ax is None:
         fig,ax = plt.subplots()
     xx = np.linspace( gev.ppf(1-1/lower, c=-xi, loc=mu, scale=sigma), 
         gev.ppf(1-1/upper, c=-xi, loc=mu, scale=sigma), 1000)
     rp = gev_return_period(xx, mu, sigma, xi) 
-    ax.plot(rp, xx, **kws)
-    ax.set_xscale('log')
+    if x in ('rp', 'return_period'):
+        ax.plot(rp, xx, **kws)
+        ax.set_xscale('log')
+    else:
+        ax.plot(xx, rp, **kws)
+        ax.set_yscale('log')
+        
 
 #return value from return period
 def gev_return_period_inverse(rp, mu, sigma, xi):
