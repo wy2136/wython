@@ -31,7 +31,8 @@ def get_world_shape(cntry_names=None):
  
 if __name__ == '__main__':
     from wyconfig import *
-
+    from geoplots import xticks2lon, yticks2lat
+    """
     print('world')
     shdf = get_world_shape()
     print(shdf)
@@ -46,7 +47,24 @@ if __name__ == '__main__':
     shdf = get_world_shape('United States')
     print(shdf)
     shdf.plot()
+    """
+    if len(sys.argv)>1:
+        cntry_names = [s for s in sys.argv[1:] if s not in ('savefig',)]
+        if len(cntry_names)<1:
+            shdf = get_world_shape()
+        else:
+            shdf = get_world_shape(cntry_names)
+    else:
+        shdf = get_world_shape()
+    shdf.plot()
+    ax = plt.gca()
+    ax.set_aspect('equal')
+    xticks2lon()
+    yticks2lat()
 
+    if 'savefig' in sys.argv:
+        figname = 'wymap.png'
+        wysavefig(figname)
     tt.check(f'**Done**')
     plt.show()
     

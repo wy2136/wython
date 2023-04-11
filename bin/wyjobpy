@@ -3,6 +3,19 @@ if [ ! -f $1 ]; then
     echo "#!/usr/bin/env python" > $1
     echo "# Wenchang Yang (wenchang@princeton.edu)" >> $1
     echo "# $(date)" >> $1
+    echo "##SBATCH --nodes=1                # node count" >> $1
+    echo "##SBATCH --ntasks-per-node=1      # number of tasks per node" >> $1
+    echo "# " >> $1
+    echo "#SBATCH --ntasks=1               # total number of tasks across all nodes = nodes x ntasks-per-node" >> $1
+    echo "#SBATCH --cpus-per-task=1        # cpu-cores per task (>1 if multi-threaded tasks)" >> $1
+    echo "#SBATCH --mem-per-cpu=16G         # memory per cpu-core (4G is default)" >> $1
+    echo "#SBATCH --time=24:00:00          # total run time limit (HH:MM:SS)" >> $1
+    echo "#SBATCH --mail-type=all          # send email when job begins/ends/fails" >> $1
+    echo "#SBATCH --mail-user=$USER@princeton.edu" >> $1
+    echo "# " >> $1
+    echo "##SBATCH --array=1-100#%32        # job array with index values 1, 2, ...,; max job # is 32 if specified" >> $1
+    echo "##SBATCH --output=slurm-%A.%a.out # stdout file" >> $1
+    echo "##SBATCH --error=slurm-%A.%a.err  # stderr file" >> $1
     echo "if __name__ == '__main__':" >> $1
     echo "    import sys,os" >> $1
     echo "    from misc.timer import Timer" >> $1
@@ -10,14 +23,12 @@ if [ ! -f $1 ]; then
     echo "import sys, os.path, os, glob, datetime" >> $1
     echo "import xarray as xr, numpy as np, pandas as pd, matplotlib.pyplot as plt" >> $1
     echo "#more imports" >> $1
-    echo "wython = '/tigress/wenchang/wython'" >> $1
-    echo "if wython not in sys.path: sys.path.append(wython); print('added to python path:', wython)" >> $1
-    echo "#from misc import get_kws_from_argv" >> $1
     echo "#" >> $1
     echo "if __name__ == '__main__':" >> $1
     echo "    tt.check('end import')" >> $1
     echo "#" >> $1
     echo "#start from here" >> $1
+    echo "#ii_job = int( os.environ['SLURM_ARRAY_TASK_ID'] )" >> $1
     if [ "$#" -ge 2 ]; then
         cat $2 >> $1
     fi
@@ -35,7 +46,7 @@ if [ ! -f $1 ]; then
     echo "            wysavefig(figname)" >> $1
     echo "    tt.check(f'**Done**')" >> $1
     echo "    print()" >> $1
-    echo "    if 'notshowfig' in sys.argv or 'n' in sys.argv:" >> $1
+    echo "    if 'notshowfig' in sys.argv:" >> $1
     echo "        pass" >> $1
     echo "    else:" >> $1
     echo "        if 'plt' in globals(): plt.show()" >> $1

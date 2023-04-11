@@ -172,11 +172,13 @@ def plot_fit_bootstrap(data, datacv, cv_level=None, bsfit=None, nmc=100, mc_seed
 
     return ds
 def plot_covariate(data, datacv, fit_result=None, ax=None, fit_kws=None, **kws):
+    linecolor = kws.pop('linecolor', 'k')
+    markercolor = kws.pop('markercolor', 'gray')
     if ax is None:
         fig,ax = plt.subplots()
     if fit_kws is None:
         fit_kws = {}
-    ax.plot(datacv, data, ls='none', marker='o', fillstyle='none', alpha=0.5, **kws)
+    ax.plot(datacv, data, ls='none', marker='o', fillstyle='none', alpha=0.5, markersize=5, color=markercolor, **kws)
     if fit_result is None:
         r = fit(data, datacv, **fit_kws)
     else:
@@ -191,17 +193,18 @@ def plot_covariate(data, datacv, fit_result=None, ax=None, fit_kws=None, **kws):
         """
         x = np.linspace(datacv.min(), datacv.max(), 100)
         sigma = sigma0*exp( alpha*x/mu0 )
+        mu = mu0*exp( alpha*x/mu0 )
         #plot mu
         y = mu0*exp( alpha*x/mu0 )
-        ax.plot(x, y, **kws)
+        ax.plot(x, y, color=linecolor, **kws)
         #plot line of return period 6
-        #y = [gev_return_period_inverse(6, mu_, sigma_, xi) for mu_,sigma_ in zip(y, sigma)]
-        y = y + sigma
-        ax.plot(x, y, lw=1, ls='--', **kws)
+        y = [gev_return_period_inverse(6, mu_, sigma_, xi) for mu_,sigma_ in zip(mu, sigma)]
+        #y = y + sigma
+        ax.plot(x, y, lw=1, ls='--', color=linecolor, **kws)
         #plot line of return period 40
-        #y = [gev_return_period_inverse(40, mu_, sigma_, xi) for mu_,sigma_ in zip(y, sigma)]
-        y = y + sigma
-        ax.plot(x, y, lw=1, ls='--', **kws)
+        y = [gev_return_period_inverse(40, mu_, sigma_, xi) for mu_,sigma_ in zip(mu, sigma)]
+        #y = y + sigma
+        ax.plot(x, y, lw=1, ls='--', color=linecolor, **kws)
     ax.set_xlabel('co-variate')
     ax.set_ylabel('return value')
 

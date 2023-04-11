@@ -48,7 +48,7 @@ def linregress_core(y, x, ess_on, slope, intercept, r, dof, tvalue, slope_stderr
     #correlation
     r[0] = slope[0]*np.sqrt(s2x/s2y)
     N = x.size
-    #effective sample size considered
+    #effective sample size considered:http://journals.ametsoc.org/doi/abs/10.1175/1520-0442%281999%29012%3C1990%3ATENOSD%3E2.0.CO%3B2
     if ess_on[0]:
         s = 1.0
         for tao in range(1, N//2+1):

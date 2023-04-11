@@ -8,7 +8,7 @@ if [ ! -f $1 ]; then
     echo "# " >> $1
     echo "#SBATCH --ntasks=1               # total number of tasks across all nodes = nodes x ntasks-per-node" >> $1
     echo "#SBATCH --cpus-per-task=1        # cpu-cores per task (>1 if multi-threaded tasks)" >> $1
-    echo "#SBATCH --mem-per-cpu=4G         # memory per cpu-core (4G is default)" >> $1
+    echo "#SBATCH --mem-per-cpu=16G         # memory per cpu-core (4G is default)" >> $1
     echo "#SBATCH --time=24:00:00          # total run time limit (HH:MM:SS)" >> $1
     echo "#SBATCH --mail-type=all          # send email when job begins/ends/fails" >> $1
     echo "#SBATCH --mail-user=$USER@princeton.edu" >> $1

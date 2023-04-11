@@ -17,10 +17,11 @@ if __name__ == '__main__':
     tt.check('end import')
 #
 #start from here
+markersize_default = 3
 # empirical cdf, ep and rp
 def smp_cdf(data):
     """empirical cdf""" 
-    xx = np.sort(da)
+    xx = np.sort(data)
     yy = rankdata(xx)/xx.size
     return xx, yy
 def smp_exceedance_prob(data):
@@ -34,26 +35,31 @@ def plot_smp_exceedance_prob(data, ax=None, **kws):
         fig, ax = plt.subplots()
     ls = kws.pop('ls', 'none')
     marker = kws.pop('marker', 'o')
+    markersize = kws.pop('markersize', markersize_default)
     fillstyle = kws.pop('fillstyle', 'none')
     alpha = kws.pop('alpha', 0.5)
     xx, ep = smp_exceedance_prob(data)
-    ax.plot(xx, ep, ls=ls, marker=marker, fillstyle=fillsytle, alpha=alpha, **kws)
+    ax.plot(xx, ep, ls=ls, marker=marker, fillstyle=fillsytle, alpha=alpha, markersize=markersize, **kws)
     ax.set_yscale('log')
-def smp_return_period(data):
+def smp_return_period(data, low_extreme=False):
     """empirical return period"""
-    xx, ep = smp_exceedance_prob(data)
-    rp = 1/ep
+    if low_extreme:
+        xx, prob = smp_cdf(data)
+    else:
+        xx, prob = smp_exceedance_prob(data)
+    rp = 1/prob
     return xx, rp
-def plot_smp_return_period(data, ax=None, **kws):
+def plot_smp_return_period(data, ax=None, low_extreme=False, **kws):
     """plot empirical return period"""
     if ax is None:
         fig, ax = plt.subplots()
     ls = kws.pop('ls', 'none')
     marker = kws.pop('marker', 'o')
+    markersize = kws.pop('markersize', markersize_default)
     fillstyle = kws.pop('fillstyle', 'none')
     alpha = kws.pop('alpha', 0.5)
-    xx, rp = smp_return_period(data)
-    ax.plot(rp, xx, ls=ls, marker=marker, fillstyle=fillstyle, alpha=alpha, **kws) 
+    xx, rp = smp_return_period(data, low_extreme=low_extreme)
+    ax.plot(rp, xx, ls=ls, marker=marker, fillstyle=fillstyle, alpha=alpha, markersize=markersize, **kws) 
     ax.set_xscale('log')
 
 #theoretical cdf, ep and rp

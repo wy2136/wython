@@ -2,6 +2,7 @@
 # Wenchang Yang (wenchang@princeton.edu)
 # Sat Aug 24 15:02:58 EDT 2019
 #update from old version: use the Python package tcpypi (https://github.com/dgilford/tcpyPI) to replace the old FORTRAN-based PI calculation
+#update from AMx to AMxplev: use pressue level (plev) defined 3-D variables instead of that of hybrid level (pfull) 
 import os.path#, os, sys
 import xarray as xr, numpy as np#, pandas as pd
 #import matplotlib.pyplot as plt
@@ -22,6 +23,25 @@ def do_tci(ifile, odir=None):
     ibasename = os.path.basename(ifile)
     ds = xr.open_dataset(ifile)
     is_ocean = ds.land_mask.load() < 0.1
+    
+    #plev data; vertical dim is level (units is hPa)
+    idir_plev = os.path.dirname(ifile).replace('POSTP', 'analysis_wy/plev')
+    daname = 'temp'
+    ifile_plev = os.path.join(idir_plev, ibasename.replace('.nc', f'.plev.{daname}.nc'))
+    temp = xr.open_dataset(ifile_plev)[daname]
+    daname = 'sphum'
+    ifile_plev = os.path.join(idir_plev, ibasename.replace('.nc', f'.plev.{daname}.nc'))
+    sphum = xr.open_dataset(ifile_plev)[daname]
+    daname = 'rh'
+    ifile_plev = os.path.join(idir_plev, ibasename.replace('.nc', f'.plev.{daname}.nc'))
+    rh = xr.open_dataset(ifile_plev)[daname]
+    daname = 'ucomp'
+    ifile_plev = os.path.join(idir_plev, ibasename.replace('.nc', f'.plev.{daname}.nc'))
+    ucomp = xr.open_dataset(ifile_plev)[daname]
+    daname = 'vcomp'
+    ifile_plev = os.path.join(idir_plev, ibasename.replace('.nc', f'.plev.{daname}.nc'))
+    vcomp = xr.open_dataset(ifile_plev)[daname]
+
 
     # entropy deficit: (s_m_star - s_m)/(s_sst_star - s_b)
     print('entropy deficit')
@@ -38,9 +58,14 @@ def do_tci(ifile, odir=None):
             Tb=ds.t_ref,
             RHb=ds.rh_ref/100,
             p_m=p_m,
-            Tm=ds.temp.interp(pfull=p_m/100).drop('pfull'),
-            RHm=ds.rh.interp(pfull=p_m/100).drop('pfull')/100
+            Tm=temp.sel(level=p_m/100).drop('level'),
+            RHm=rh.sel(level=p_m/100).drop('level')/100
             ).where(is_ocean)
+        """
+        #old version of Tm and RHm:
+        Tm=ds.temp.interp(pfull=p_m/100).drop('pfull'),
+        RHm=ds.rh.interp(pfull=p_m/100).drop('pfull')/100
+        """
         chi.to_dataset(name=dname) \
             .to_netcdf(ofile, 
                 encoding={dname: {'dtype': 'float32', 'zlib': True, 'complevel': 1}},
@@ -62,10 +87,15 @@ def do_tci(ifile, odir=None):
             Tb=ds.t_ref,
             RHb=ds.rh_ref/100,
             p_m=p_m,
-            Tm=ds.temp.interp(pfull=p_m/100).drop('pfull'),
-            RHm=ds.rh.interp(pfull=p_m/100).drop('pfull')/100,
+            Tm=temp.sel(level=p_m/100).drop('level'),
+            RHm=rh.interp(level=p_m/100).drop('level')/100,
             forGPI2010=True
             ).where(is_ocean)
+        """
+        #old version of Tm and RHm:
+        Tm=ds.temp.interp(pfull=p_m/100).drop('pfull'),
+        RHm=ds.rh.interp(pfull=p_m/100).drop('pfull')/100,
+        """
         chi_sb.to_dataset(name=dname) \
             .to_netcdf(ofile, 
                 encoding={dname: {'dtype': 'float32', 'zlib': True, 'complevel': 1}},
@@ -79,11 +109,10 @@ def do_tci(ifile, odir=None):
         PI = xr.open_dataset(ofile)
         print('[opened]:', ofile)
     else:
-        #truncate_and_reverse_plevels = lambda x: x.sel(pfull=slice(60, None)) \
-        #    .isel(pfull=slice(-1, None, -1)) # pfull above 60hPa ignored in the CAPE calculation from the FORTRAN code
-        truncate_and_reverse_plevels = lambda x: x.sel(pfull=slice(30, None)) \
-            .isel(pfull=slice(-1, None, -1)) # leave a few levels between 60hPa and 30hPa
         """
+        #version 1
+        truncate_and_reverse_plevels = lambda x: x.sel(pfull=slice(60, None)) \
+            .isel(pfull=slice(-1, None, -1)) # pfull above 60hPa ignored in the CAPE calculation from the FORTRAN code
         PI = potential_intensity(
             sst=ds.t_surf.where(is_ocean),
             slp=ds.slp.where(is_ocean)*100,
@@ -92,7 +121,9 @@ def do_tci(ifile, odir=None):
             q=ds.sphum.pipe(truncate_and_reverse_plevels).where(is_ocean),
             dim_x='grid_xt', dim_y='grid_yt', dim_z='pfull'
             )
-        """
+        #version 2: use tcpypi
+        truncate_and_reverse_plevels = lambda x: x.sel(pfull=slice(30, None)) \
+            .isel(pfull=slice(-1, None, -1)) # leave a few levels between 60hPa and 30hPa
         PI = potential_intensity(
             sst=ds.t_surf.where(is_ocean),
             slp=ds.slp.where(is_ocean)*100,
@@ -100,6 +131,16 @@ def do_tci(ifile, odir=None):
             T=ds.temp.pipe(truncate_and_reverse_plevels).where(is_ocean),
             q=ds.sphum.pipe(truncate_and_reverse_plevels).where(is_ocean),
             dim_z='pfull'
+            )
+        """
+        #no need to truncate (leave to tcpypi) and reverse(already starts from bottom level)
+        PI = potential_intensity(
+            sst=ds.t_surf.where(is_ocean),
+            slp=ds.slp.where(is_ocean)*100,
+            p=temp.level*100,
+            T=temp.where(is_ocean),
+            q=sphum.where(is_ocean),
+            dim_z='level'
             )
         encoding = {dname:{'dtype': 'float32', 'zlib': True, 'complevel': 1} 
             for dname in list(PI.data_vars)}
@@ -115,11 +156,21 @@ def do_tci(ifile, odir=None):
         Vshear = xr.open_dataset(ofile)[dname]
         print('[opened]:', ofile)
     else:
+        """
+        #pfull version
         Vshear = wind_shear(
             u850=ds.ucomp.interp(pfull=850),
             v850=ds.vcomp.interp(pfull=850),
             u200=ds.ucomp.interp(pfull=200),
             v200=ds.vcomp.interp(pfull=200)
+            )
+        """
+        #plev version
+        Vshear = wind_shear(
+            u850=ucomp.sel(level=850),
+            v850=vcomp.sel(level=850),
+            u200=ucomp.sel(level=200),
+            v200=vcomp.sel(level=200)
             )
         Vshear.to_dataset(name=dname) \
             .to_netcdf(ofile, 
@@ -169,7 +220,8 @@ def do_tci(ifile, odir=None):
         H = xr.open_dataset(ofile)[dname]
         print('[opened]:', ofile)
     else:
-        H = ds.rh.interp(pfull=600).drop('pfull')
+        #H = ds.rh.interp(pfull=600).drop('pfull') # pfull version
+        H = rh.sel(level=600).drop('level') #plev version
         H.attrs['long_name'] = '600hPa relative humidity'
         H.attrs['units'] = '%'
         H.to_dataset(name=dname) \

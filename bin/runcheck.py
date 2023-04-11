@@ -19,6 +19,10 @@ if len(sys.argv) < 2:
     daname = 't_surf'
 else:
     daname = sys.argv[1]
+if 'anom' in sys.argv:
+    anom = True
+else:
+    anom = False
 cwd = os.getcwd()
 print('cwd:', cwd)
 ifiles = os.path.join(cwd, 'work/POSTP/*.atmos_month.nc')
@@ -31,6 +35,8 @@ da = xr.open_mfdataset(ifiles)[daname]
 units = da.attrs['units']
 print(f'{daname}[{units}] loading ...')
 da.load() 
+if anom:
+    da = da.groupby('time.month') - da.groupby('time.month').mean('time')
  
 if __name__ == '__main__':
     from wyconfig import * #my plot settings

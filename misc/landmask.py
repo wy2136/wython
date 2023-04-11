@@ -17,9 +17,31 @@ if __name__ == '__main__':
 land = regionmask.defined_regions.natural_earth.land_110
 def flagland(da):
     """Given input DataArray with lon/lat info, return landflag DataArray (1 over land and 0 over ocean)"""
+    #rename grid names from GFDL GCMs
+    if 'grid_xt' in da.dims:
+        da = da.rename(grid_xt='lon')
+    if 'grid_yt' in da.dims:
+        da = da.rename(grid_yt='lat')
     lmask = land.mask(da)
     landflag = (lmask + 1).fillna(0)
     return landflag
+
+def whereland(da):
+    """keep values over land and leave NaNs over ocean"""
+    #rename grid names from GFDL GCMs
+    if 'grid_xt' in da.dims:
+        da = da.rename(grid_xt='lon')
+    if 'grid_yt' in da.dims:
+        da = da.rename(grid_yt='lat')
+    return da.where(flagland(da)>0.5)
+def whereocean(da):
+    #rename grid names from GFDL GCMs
+    if 'grid_xt' in da.dims:
+        da = da.rename(grid_xt='lon')
+    if 'grid_yt' in da.dims:
+        da = da.rename(grid_yt='lat')
+    """keep values over ocean and leave NaNs over land"""
+    return da.where(flagland(da)<0.5)
  
  
 if __name__ == '__main__':

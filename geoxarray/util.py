@@ -38,6 +38,7 @@ def fldmean(da, lon_name=None, lat_name=None):
         lat_name: name of latitude, e.g. 'lat'
     Return:
         xarray.DataArray'''
+    attrs_saved = da.attrs
     # default lon_name and lat_name
     dims = da.dims
     if lon_name is None:
@@ -62,6 +63,7 @@ def fldmean(da, lon_name=None, lat_name=None):
     # field mean
     da_mean = (wt * da).sum([lon_name, lat_name])
     da_mean /= (wt + da*0).sum([lon_name, lat_name])
+    da_mean = da_mean.assign_attrs(attrs_saved)
 
     return da_mean
 

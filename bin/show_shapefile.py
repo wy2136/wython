@@ -14,8 +14,10 @@ if __name__ == '__main__':
     tt.check('end import')
 #
 #start from here
-if len(sys.argv)>1:
-    ifiles = sys.argv[1:]
+ifiles = [ifile for ifile in sys.argv if ifile.endswith('.shp')]
+if len(ifiles)==0:
+    ifiles = [ifile for ifile in os.listdir('.') if ifile.endswith('.shp')]
+if len(ifiles)>0:
     for ifile in ifiles:
         shdf = salem.read_shapefile(ifile)
         print(f'**{ifile}**')
@@ -27,6 +29,12 @@ if len(sys.argv)>1:
         print('**columns**')
         print(shdf.columns)
         print()
+        if 'showall' in sys.argv:
+            ncol = len(shdf.columns)
+            for ii,column in enumerate(shdf.columns, start=1):
+                print(f'{ii:02d} of {ncol}:', column)
+                print(shdf.loc[:, column])
+                print()
 else:
     print(f'please provide input shape files:')
     print(f'    {os.path.basename(__file__)} shapfile1,[shapefile2,...]')

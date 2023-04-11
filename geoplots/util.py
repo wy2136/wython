@@ -43,15 +43,15 @@ def xticks2lon(xticks=None, **kw):
         x = np.mod(x,360)
         if 0<x<180: #x>0 and x<180:
             # new_xticklabels[i] = str(int(x)) + '$^{\circ}$E'
-            xticklabels[i] = '{}$^{{\circ}}$E'.format(x)
+            xticklabels[i] = '{:g}$^{{\circ}}$E'.format(x)
         elif 180<x<360: #x>180 and x<360:
             # new_xticklabels[i] = str(int(360-x))+'$^{\circ}$W'
-            xticklabels[i] = '{}$^{{\circ}}$W'.format(360-x)
+            xticklabels[i] = '{:g}$^{{\circ}}$W'.format(360-x)
         elif -180<x<0:
-            xticklabels[i] = '{}$^{{\circ}}$W'.format(-x)
+            xticklabels[i] = '{:g}$^{{\circ}}$W'.format(-x)
         elif x==0 or x==180:
             # new_xticklabels[i] = str(int(x)) + '$^{\circ}$'
-            xticklabels[i] = '{}$^{{\circ}}$'.format(x)
+            xticklabels[i] = '{:g}$^{{\circ}}$'.format(x)
 
     ax.set_xticklabels(xticklabels, **kw)
 
@@ -69,15 +69,15 @@ def yticks2lon(yticks=None, **kw):
         y = np.mod(y,360)
         if 0<y<180: #x>0 and x<180:
             # new_xticklabels[i] = str(int(x)) + '$^{\circ}$E'
-            yticklabels[i] = '{}$^{{\circ}}$E'.format(y)
+            yticklabels[i] = '{:g}$^{{\circ}}$E'.format(y)
         elif 180<y<360: #x>180 and x<360:
             # new_xticklabels[i] = str(int(360-x))+'$^{\circ}$W'
-            yticklabels[i] = '{}$^{{\circ}}$W'.format(360-y)
+            yticklabels[i] = '{:g}$^{{\circ}}$W'.format(360-y)
         elif -180<y<0:
-            yticklabels[i] = '{}$^{{\circ}}$W'.format(-y)
+            yticklabels[i] = '{:g}$^{{\circ}}$W'.format(-y)
         elif y==0 or y==180:
             # new_xticklabels[i] = str(int(x)) + '$^{\circ}$'
-            yticklabels[i] = '{}$^{{\circ}}$'.format(y)
+            yticklabels[i] = '{:g}$^{{\circ}}$'.format(y)
 
     #plt.yticks(yticks, yticklabels, **kw)
     ax.set_yticklabels(yticklabels, **kw)
@@ -94,9 +94,9 @@ def xticks2lat(xticks=None, **kw):
 
     for i, x in enumerate(xticks):
         if x>0:
-            xticklabels[i] = '{}$^{{\circ}}$N'.format(x)
+            xticklabels[i] = '{:g}$^{{\circ}}$N'.format(x)
         elif x<0 :
-            xticklabels[i] = '{}$^{{\circ}}$S'.format(-x)
+            xticklabels[i] = '{:g}$^{{\circ}}$S'.format(-x)
         else:
             xticklabels[i] = '0$^{\circ}$'
 
@@ -115,9 +115,9 @@ def yticks2lat(yticks=None, **kw):
 
     for i, y in enumerate(yticks):
         if y>0:
-            yticklabels[i] = '{}$^{{\circ}}$N'.format(y)
+            yticklabels[i] = '{:g}$^{{\circ}}$N'.format(y)
         elif y<0 :
-            yticklabels[i] = '{}$^{{\circ}}$S'.format(-y)
+            yticklabels[i] = '{:g}$^{{\circ}}$S'.format(-y)
         else:
             yticklabels[i] = '0$^{\circ}$'
 

@@ -15,10 +15,17 @@ years = range(1, 11)
 ens = None
 if ens is not None:
     nens = len(ens)
-track_tags = {'FLOR': 'cyclones_gav_ro110_1C_330k',
+track_tags = {
+    'FLOR': 'cyclones_gav_ro110_1C_330k',
+    'FLORktc': 'cyclones_gav_ro110_1C_330k',
+    'FLORktc2': 'cyclones_gav_ro110_1C_330k',
     'AM2.5': 'cyclones_gav_ro110_1C_330k',
+    'AM2.5ktc': 'cyclones_gav_ro110_1C_330k',
+    'AM2.5ktc2': 'cyclones_gav_ro110_1C_330k',
     'HIRAM': 'cyclones_gav_ro110_2p5C_330k',
+    'HIRAMktc2': 'cyclones_gav_ro110_2p5C_330k',
     'AM2.5C360': 'cyclones_gav_ro110_330k',
+    'AM2.5C360ktc2': 'cyclones_gav_ro110_330k',
     'AM4': 'cyclones_gav_ro110_1C_330k',
     'AM4_urban': 'cyclones_gav_ro250_p75C_550k',
 }
@@ -38,7 +45,11 @@ print('[start]:', thisjob)
 #ofile = f'{model}.{expname}.tc_tracks.{storm_type}.{years[0]:04d}-{years[-1]:04d}.nc'
 ofile = f'tc_tracks.{storm_type}.{years[0]:04d}-{years[-1]:04d}.nc'
 if ens is not None:
-    ofile = ofile.replace(f'.{storm_type}.', f'.{storm_type}.nens{nens}.')
+    if nens > 1:
+        ofile = ofile.replace(f'.{storm_type}.', f'.{storm_type}.{nens}ens.')
+    else:
+        ofile = ofile.replace(f'.{storm_type}.', f'.{storm_type}.ens{ens[0]:02d}.')
+        
 if not os.path.exists(ofile):
     ds = tc_tracks(expname=expname, years=years, ens=ens, model=model,
         track_tag=track_tag, storm_type=storm_type, n_storms_bound=n_storms_bound)
@@ -61,7 +72,10 @@ else:
 #ofile = f'{model}.{expname}.tc_counts.{storm_type}.{years[0]:04d}-{years[-1]:04d}.nc'
 ofile = f'tc_counts.{storm_type}.{years[0]:04d}-{years[-1]:04d}.nc'
 if ens is not None:
-    ofile = ofile.replace(f'.{storm_type}.', f'.{storm_type}.nens{nens}.')
+    if nens > 1:
+        ofile = ofile.replace(f'.{storm_type}.', f'.{storm_type}.{nens}ens.')
+    else:
+        ofile = ofile.replace(f'.{storm_type}.', f'.{storm_type}.ens{ens[0]:02d}.')
 if minMaxWindspeed is not None:
     ofile = ofile.replace(f'.{storm_type}.', f'.{storm_type}{minMaxWindspeed}.')
 if not os.path.exists(ofile):
@@ -102,7 +116,10 @@ if do_track_density:
     #ofile = f'{model}.{expname}.tc_density.{storm_type}.{years[0]:04d}-{years[-1]:04d}.nc'
     ofile = f'tc_density.{storm_type}.{years[0]:04d}-{years[-1]:04d}.nc'
     if ens is not None:
-        ofile = ofile.replace(f'.{storm_type}.', f'.{storm_type}.nens{nens}.')
+        if nens > 1:
+            ofile = ofile.replace(f'.{storm_type}.', f'.{storm_type}.{nens}ens.')
+        else:
+            ofile = ofile.replace(f'.{storm_type}.', f'.{storm_type}.ens{ens[0]:02d}.')
     if minMaxWindspeed is not None:
         ofile = ofile.replace(f'.{storm_type}.', f'.{storm_type}{minMaxWindspeed}.')
         ds_ = ds.where(ds.windmax.max('stage')>minMaxWindspeed)
@@ -158,7 +175,10 @@ if do_ace:
     #ofile = f'{model}.{expname}.tc_ace.{storm_type}.{years[0]:04d}-{years[-1]:04d}.nc'
     ofile = f'tc_ace.{storm_type}.{years[0]:04d}-{years[-1]:04d}.nc'
     if ens is not None:
-        ofile = ofile.replace(f'.{storm_type}.', f'.{storm_type}.nens{nens}.')
+        if nens > 1:
+            ofile = ofile.replace(f'.{storm_type}.', f'.{storm_type}.{nens}ens.')
+        else:
+            ofile = ofile.replace(f'.{storm_type}.', f'.{storm_type}.ens{ens[0]:02d}.')
     if minMaxWindspeed is not None:
         ofile = ofile.replace(f'.{storm_type}.', f'.{storm_type}{minMaxWindspeed}.')
         ds_ = ds.where(ds.windmax.max('stage')>minMaxWindspeed)

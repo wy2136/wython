@@ -43,3 +43,27 @@ def season2months(season):
         N = len(season)
         months = months_full[i:i+N]
     return months
+
+def sel_season(ds, season='annual'):
+    """given input dataset/dataarray, select data of specified season"""
+    L = False
+    months = season2months(season)
+    for month in months:
+        L = L | (ds.time.dt.month==month)
+    return ds.isel(time=L)
+
+if __name__ == '__main__':
+    if 'test' in sys.argv:
+        from xdata import ds
+        season = 'annual'
+        kws = [s for s in sys.argv if s.startswith('season=')]
+        if kws:
+            season = kws[-1].split('=')[-1]
+        ds_ = ds.pipe(sel_season, season=season)
+        print(f'{season = }')
+        print()
+        print(f'{ds_ = }')
+        print()
+        print(f'{ds_.time = }')
+
+

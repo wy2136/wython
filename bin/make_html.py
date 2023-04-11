@@ -92,7 +92,8 @@ def main(html_file='index.html', img_width=800):
         f.write('<!DOCTYPE html>\n')
         f.write('<html>\n')
         f.write('<head>\n')
-        f.write(f'<title>{proj_name}, Wenchang Yang</title>\n')
+        s = ''.join([chr(n) for n in [87, 101, 110, 99, 104, 97, 110, 103, 32, 89, 97, 110, 103]]) + ', \u6768\u6587\u660C'
+        f.write(f'<title>{proj_name}, {s}</title>\n')
         f.write('<meta charset="utf-8">\n')
         f.write('<meta name="viewport" content="width=device-width, initial-scale=1.0">\n')
         f.write('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">\n')
@@ -139,6 +140,8 @@ def main(html_file='index.html', img_width=800):
             f.write(f'<h3 id="{label}">{label}</h3>\n')
             f.write('<div class="list-group">\n')
             ifiles.sort(key=lambda x: x.lower())
+            if os.path.basename(os.getcwd()) in ('WWA',):
+                ifiles = ifiles[-1::-1] #reverse ifiles in some cases
             for ifile in ifiles:
                 f.write(f'<a class=" list-group-item list-group-item-text" href="{ifile}">{ifile}/</a>\n')
             f.write('</div> <!-- list-group -->\n')
@@ -204,6 +207,9 @@ def main(html_file='index.html', img_width=800):
             f.write('\n')
 
 
+        #s = '\u00a9' + ''.join([chr(n) for n in [87, 101, 110, 99, 104, 97, 110, 103, 89, 97, 110, 103]])
+        s = ''.join([chr(n) for n in [87, 101, 110, 99, 104, 97, 110, 103, 89, 97, 110, 103]])
+        f.write(f'<p class="text-center text-muted">{s}</p>')
         f.write('</div> <!-- container -->\n')
         f.write('</body>\n')
         f.write('</html>\n')

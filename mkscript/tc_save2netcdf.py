@@ -11,9 +11,17 @@ print()
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', help='model name')
 parser.add_argument('--expname', help='experiment name')
+parser.add_argument('--ens', help='ensemble members, e.g. 1:5')
+parser.add_argument('--years', help='model years, e.g. 1:10 or 1981:2000')
 args = parser.parse_args()
 model = args.model
 expname = args.expname
+ens = args.ens
+if ens:
+    ens_start, ens_end = [int(s) for s in ens.split(':')]
+years = args.years
+if years:
+    year_start, year_end = [int(s) for s in years.split(':')]
 
 odir = os.getcwd()
 idir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
@@ -52,6 +60,10 @@ with open(ifile) as fi:
             ocontent = ocontent.replace(f"model = '{model_template}'", f"model = '{model}'")
         if expname:
             ocontent = ocontent.replace(f"expname = '{expname_template}'", f"expname = '{expname}'")
+        if ens:
+            ocontent = ocontent.replace(f"ens = None", f"ens = range({ens_start}, {ens_end}+1)")
+        if years:
+            ocontent = ocontent.replace(f"years = range(1, 11)", f"years = range({year_start}, {year_end}+1)")
         fo.write(ocontent)
         print('[created]:', obasename)
 

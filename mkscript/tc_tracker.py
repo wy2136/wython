@@ -46,9 +46,9 @@ obasename = os.path.basename(ifile)
 # modify the script name accordingly
 if model != model_template:
     obasename = obasename.replace(model_template, model)
-if model in ('AM2.5C360',):
+if model in ('AM2.5C360', 'AM2.5C360ktc2'):
     obasename = obasename.replace('_1C_', '_') # use the default value of dt_crit_warm = 2.
-elif model in ('HIRAM',):
+elif model in ('HIRAM', 'HIRAMktc2'):
     obasename = obasename.replace('_1C_', '_2p5C_') # dt_crit_warm = 2.5degC
 elif model in ('AM4', 'AM4_urban'):
     obasename = obasename.replace('_ro110_', '_ro250_') # r_offset_warm = 250.
@@ -77,12 +77,12 @@ with open(ifile) as fi:
         if model in ('FLOR',):
             istr, ostr = '${model}/', ''
             ocontent = do_replace(ocontent, istr, ostr) # FLOR outputs are directly under MODEL_OUT
-        elif model in ('AM2.5C360',):
+        elif model in ('AM2.5C360', 'AM2.5C360ktc2'):
             istr, ostr = 'dt_crit_warm = 1.', 'dt_crit_warm = 2.! default is 2.'
             ocontent = do_replace(ocontent, istr, ostr)
             istr, ostr = '_1C_', '_'
             ocontent = do_replace(ocontent, istr, ostr)
-        elif model in ('HIRAM',):
+        elif model in ('HIRAM', 'HIRAMktc2'):
             istr, ostr = 'dt_crit_warm = 1.', 'dt_crit_warm = 2.5! default is 2.'
             ocontent = do_replace(ocontent, istr, ostr)
             istr, ostr = '_1C_', '_2p5C_'
@@ -155,10 +155,10 @@ done'''
 
 # slurm script
 if model in ('AM2.5C360',):#AM2.5C360 needs more memory (about 11.26 GB) than the default 4G
-    mem_per_cpu = 16#G
+    mem_per_cpu = 32#G
 else:
-    mem_per_cpu = 4#G
-slurm_basename = f'slurm.{obasename}'.replace('.csh', '.sh')
+    mem_per_cpu = 16#G
+slurm_basename = f'job.{obasename}'.replace('.csh', '.sh')
 slurm_file = os.path.join(cwd, slurm_basename)
 t = datetime.datetime.now()
 with open(slurm_file, 'w') as fo:
@@ -175,7 +175,7 @@ with open(slurm_file, 'w') as fo:
 #SBATCH --ntasks=1               # total number of tasks across all nodes
 #SBATCH --cpus-per-task=1        # cpu-cores per task (>1 if multi-threaded tasks)
 #SBATCH --mem-per-cpu={mem_per_cpu}G         # memory per cpu-core (4G is default)
-#SBATCH --time=01:01:00          # total run time limit (HH:MM:SS)
+#SBATCH --time=05:00:00          # total run time limit (HH:MM:SS)
 #SBATCH --array=1-{nyears*nens}#%32              # job array with index values 1, 2, ..., {nyears*nens}; max job # is 32
 #SBATCH --mail-type=all          # send email on job start, end and fault
 #SBATCH --mail-user=wenchang@princeton.edu
@@ -200,7 +200,7 @@ $(pwd)/$script  $year $en
 #SBATCH --ntasks=1               # total number of tasks across all nodes
 #SBATCH --cpus-per-task=1        # cpu-cores per task (>1 if multi-threaded tasks)
 #SBATCH --mem-per-cpu={mem_per_cpu}G         # memory per cpu-core (4G is default)
-#SBATCH --time=01:01:00          # total run time limit (HH:MM:SS)
+#SBATCH --time=05:00:00          # total run time limit (HH:MM:SS)
 #SBATCH --array={year_start}-{year_end}#%32              # job array with index values {year_start}, {year_start+1}, ..., {year_end}, max # of jobs is 32
 #SBATCH --mail-type=all          # send email on job start, end and fault
 #SBATCH --mail-user=wenchang@princeton.edu
@@ -213,8 +213,39 @@ $(pwd)/$script  $year
     fo.write(s)
     print('[created]:', slurm_basename)
 
+# submit script that makes and submits slurm script for running experiment
+submit_basename = 'wysubmit_TC.csh'
+submit_file = os.path.join(cwd, submit_basename)
+t = datetime.datetime.now()
+with open(submit_file, 'w') as fo:
+    if ens:
+        s = f'''#!/usr/bin/env csh
+# Wenchang Yang (wenchang@princeton.edu)
+# {t.year:04d}-{t.month:02d}-{t.day:02d}T{t.hour:02d}:{t.minute:02d}:{t.second:02d}@Princeton
+set echo 
+set date_name = $1
+set en = $2
+@ year = `echo $date_name|cut -c1-4`
+set script_tc = wyjob_trackTC_en$en.sh
+cat {slurm_basename} |sed -e "s/1-{nyears*nens}/1-1/g"|sed -e "s/en_start={en_start}/en_start=$en/g"|sed -e "s/year_start={year_start}/year_start=$year/g" > $script_tc
+sbatch $script_tc
+'''
+    else:
+        s = f'''#!/usr/bin/env csh
+# Wenchang Yang (wenchang@princeton.edu)
+# {t.year:04d}-{t.month:02d}-{t.day:02d}T{t.hour:02d}:{t.minute:02d}:{t.second:02d}@Princeton
+set echo 
+set date_name = $1
+@ year = `echo $date_name|cut -c1-4`
+set script_tc = wyjob_trackTC.sh
+cat {slurm_basename} |sed -e "s/{year_start}-{year_end}/$year-$year/g" > $script_tc
+sbatch $script_tc
+'''
+    fo.write(s)
+    print('[created]:', submit_basename)
 # change the file permissions to 755
 os.chmod(ofile, 0o755)
 os.chmod(loop_file, 0o755)
 os.chmod(slurm_file, 0o755)
+os.chmod(submit_file, 0o755)
 print()

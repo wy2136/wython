@@ -164,11 +164,13 @@ def plot_fit_bootstrap(data, datacv, cv_level=None, bsfit=None, nmc=100, mc_seed
 
     return ds
 def plot_covariate(data, datacv, fit_result=None, ax=None, fit_kws=None, **kws):
+    markercolor = kws.pop('markercolor', 'gray')
+    linecolor = kws.pop('linecolor', 'k')
     if ax is None:
         fig,ax = plt.subplots()
     if fit_kws is None:
         fit_kws = {}
-    ax.plot(datacv, data, ls='none', marker='o', fillstyle='none', alpha=0.5, **kws)
+    ax.plot(datacv, data, ls='none', marker='o', fillstyle='none', alpha=0.5, markersize=5, color=markercolor, **kws)
     if fit_result is None:
         r = fit(data, datacv, **fit_kws)
     else:
@@ -176,9 +178,9 @@ def plot_covariate(data, datacv, fit_result=None, ax=None, fit_kws=None, **kws):
     if r.success:
         mu0,sigma,xi,alpha = r.x
         print('wy fit params:'.ljust(16), f'{mu0=:.4g}; {sigma=:.4g}; {xi=:.4g}; {alpha=:.4g}') 
-        ax.axline((datacv[0].item(), mu0+alpha*datacv[0].item()), slope=alpha, **kws)
-        ax.axline((datacv[0].item(), mu0+alpha*datacv[0].item()+gev_return_period_inverse(6, 0, sigma, xi)), slope=alpha, lw=1, ls='--', **kws)
-        ax.axline((datacv[0].item(), mu0+alpha*datacv[0].item()+gev_return_period_inverse(40, 0, sigma, xi)), slope=alpha, lw=1, ls='--',  **kws)
+        ax.axline((datacv[0].item(), mu0+alpha*datacv[0].item()), slope=alpha, color=linecolor, **kws)
+        ax.axline((datacv[0].item(), mu0+alpha*datacv[0].item()+gev_return_period_inverse(6, 0, sigma, xi)), slope=alpha, lw=1, ls='--', color=linecolor, **kws)
+        ax.axline((datacv[0].item(), mu0+alpha*datacv[0].item()+gev_return_period_inverse(40, 0, sigma, xi)), slope=alpha, lw=1, ls='--', color=linecolor,  **kws)
     ax.set_xlabel('co-variate')
     ax.set_ylabel('return value')
 

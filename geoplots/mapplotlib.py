@@ -48,15 +48,19 @@ def xticks2lon(ax=None, new_xticks=None):
         x = np.mod(x,360)
         if 0<x<180: #x>0 and x<180:
             # new_xticklabels[i] = str(int(x)) + '$^{\circ}$E'
-            new_xticklabels[i] = '{}$^{{\circ}}$E'.format(x)
+            #new_xticklabels[i] = '{}$^{{\circ}}$E'.format(x)
+            new_xticklabels[i] = f'{x:g}$^{{\circ}}$E'
         elif 180<x<360: #x>180 and x<360:
             # new_xticklabels[i] = str(int(360-x))+'$^{\circ}$W'
-            new_xticklabels[i] = '{}$^{{\circ}}$W'.format(360-x)
+            #new_xticklabels[i] = '{}$^{{\circ}}$W'.format(360-x)
+            new_xticklabels[i] = f'{360-x:g}$^{{\circ}}$W'
         elif -180<x<0:
-            new_xticklabels[i] = '{}$^{{\circ}}$W'.format(-x)
+            #new_xticklabels[i] = '{}$^{{\circ}}$W'.format(-x)
+            new_xticklabels[i] = f'{-x:g}$^{{\circ}}$W'
         elif x==0 or x==180:
             # new_xticklabels[i] = str(int(x)) + '$^{\circ}$'
-            new_xticklabels[i] = '{}$^{{\circ}}$'.format(x)
+            #new_xticklabels[i] = '{}$^{{\circ}}$'.format(x)
+            new_xticklabels[i] = f'{x:g}$^{{\circ}}$'
     ax.set_xticklabels(new_xticklabels)
 def yticks2lat(ax=None, new_yticks=None):
     '''Convert yticks to latitudes. '''
@@ -69,11 +73,14 @@ def yticks2lat(ax=None, new_yticks=None):
     new_yticklabels = current_yticklabels
     for i, y in enumerate(current_yticks):
         if y>0:
-            new_yticklabels[i] = str(int(y)) + '$^{\circ}$N'
+            #new_yticklabels[i] = str(int(y)) + '$^{\circ}$N'
+            new_yticklabels[i] = f'{y:g}$^{{\circ}}$N'
         elif y<0 :
-            new_yticklabels[i] = str(int(-y))+'$^{\circ}$S'
+            #new_yticklabels[i] = str(int(-y))+'$^{\circ}$S'
+            new_yticklabels[i] = f'{-y:g}$^{{\circ}}$S'
         else:
-            new_yticklabels[i] = str(int(y)) + '$^{\circ}$'
+            #new_yticklabels[i] = str(int(y)) + '$^{\circ}$'
+            new_yticklabels[i] = '0$^{{\circ}}$'
     ax.set_yticklabels(new_yticklabels)
 #
 def plot_lonlatbox(lon0, lon1, lat0, lat1, **kws):
