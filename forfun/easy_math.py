@@ -40,7 +40,7 @@ happyFace ='\U0001F600'
 frowningFace = '\U0001F641'
 
 score = 0
-n_problems = 20#25
+n_problems = 10#20#25
 points_per_problem = 100//n_problems#4
 full_score = points_per_problem * n_problems
 cprint('#'*10 + f'Math Game for {student}'+'#'*10, 'green')

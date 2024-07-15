@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # Wenchang Yang (wenchang@princeton.edu)
 # Tue Oct 18 12:14:44 EDT 2022
+#wy2023/11/02: drop the 'ens' dim/coords when dataarray is loaded from a saved file to avoid error in the later concat
 if __name__ == '__main__':
     import sys
     from misc.timer import Timer
@@ -122,7 +123,8 @@ def _get_modelout_data(daname, model, expname, dsname='atmos_month', ens=None, y
         else:
             ofile = f'{daname}_{model}_{expname}_ens{ens:02d}_{years_p[0]:04d}-{years_p[-1]:04d}_{funcname}.nc'
         if daname is None:
-            ofile = ofile.replace(f'{daname}_', f'{funcname}_').replace(f'_{funcname}.nc', '.nc')
+            #ofile = ofile.replace(f'{daname}_', f'{funcname}_').replace(f'_{funcname}.nc', '.nc')
+            ofile = ofile.replace(f'{daname}_', f'data_') #wy20231102
         if funcname is None:
             ofile = ofile.replace(f'_{funcname}.nc', '.nc')
     if os.path.exists(ofile):
@@ -183,6 +185,9 @@ def _get_modelout_data_ens(daname, model, expname, dsname='atmos_month', ens=Non
             ofile = f'{daname}_{model}_{expname}_{nens}ens_{years[0]:04d}-{years[-1]:04d}_{funcname}.nc'
         else:
             ofile = f'{daname}_{model}_{expname}_ens{list(ens)[0]:02d}_{years[0]:04d}-{years[-1]:04d}_{funcname}.nc'
+        if daname is None:
+            #ofile = ofile.replace(f'{daname}_', f'{funcname}_').replace(f'_{funcname}.nc', '.nc')
+            ofile = ofile.replace(f'{daname}_', f'data_') #wy20231102
     if os.path.exists(ofile):
         da = xr.open_dataarray(ofile)
         print('[loaded]:', ofile)
@@ -194,6 +199,7 @@ def _get_modelout_data_ens(daname, model, expname, dsname='atmos_month', ens=Non
         print(f'{ii:02d} of {nens:02d}:')
         da = _get_modelout_data(daname=daname, model=model, expname=expname, dsname=dsname,
             ens=ii, years=years, func=func, funcname=funcname, savedata=False)
+        if 'ens' in da.dims: da = da.drop_vars('ens').squeeze('ens') #wy2023/11/02: drop the ens dim/coords when it's loaded from file to avoid error in concat
         das.append(da)
     print('concatenating over ens...')
     da = xr.concat(das, dim=pd.Index(ens, name='ens'))
@@ -201,8 +207,9 @@ def _get_modelout_data_ens(daname, model, expname, dsname='atmos_month', ens=Non
     #savedata
     if savedata:
         print('saving...')
-        ds = da.to_dataset(name=daname)
-        encoding = {daname: {'zlib': True, 'complevel': 1}}
+        name = funcname if daname is None else daname
+        ds = da.to_dataset(name=name)
+        encoding = {name: {'zlib': True, 'complevel': 1}}
         ds.to_netcdf(ofile, encoding=encoding)
         print('[saved]:', ofile)
     return da
@@ -225,17 +232,21 @@ def update_modelout_data(daname, model, expname, dsname='atmos_month', ens=None,
         s = f'{daname}_{model}_{expname}_????-????_{funcname}.nc'
     else:
         s = f'{daname}_{model}_{expname}_ens{ens:02d}_????-????_{funcname}.nc'
+    if daname is None:
+        s = s.replace(f'{daname}_', f'data_') #wy2024-07-15
     ifiles = glob.glob(s)
     #print(ifiles); sys.exit()
     if ifiles:
         ifiles.sort()
-        da = xr.open_mfdataset(ifiles)[daname].load()
+        name = funcname if daname is None else daname
+        da = xr.open_mfdataset(ifiles)[name].load()
         year_start_cached = da.time.dt.year[0].item()
         year_end_cached = da.time.dt.year[-1].item()
         da_ = da
         if cleanup is True and len(ifiles)>1: #save to a new single data file and clean up the cached results
             ofile = s.replace('????-????', f'{year_start_cached:04d}-{year_end_cached:04d}')
-            da.to_dataset().to_netcdf(ofile)
+            name = funcname if daname is None else daname
+            da.to_dataset(name=name).to_netcdf(ofile)
             print('[saved]:', ofile)
             for ifile in ifiles:
                 os.remove(ifile)

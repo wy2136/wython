@@ -51,3 +51,4 @@ fi
 if [ $? -eq 0 ]; then
     rm ${tmpfile}
 fi
+exit 0

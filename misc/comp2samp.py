@@ -23,7 +23,13 @@ def _t_ppf(x, df):
 def comp2samp(da1, da2, dim=None, confidence=0.95, same_var=False):
     """compare the means of two samples and calculate the difference, p-value and uncertainty(error).
     For equal variance assumption: https://sphweb.bumc.bu.edu/otlt/mph-modules/bs/bs704_confidence_intervals/bs704_confidence_intervals5.html
-    For unequal variance assumption (by default): https://en.wikipedia.org/wiki/Student%27s_t-test"""
+    For unequal variance assumption (by default): https://en.wikipedia.org/wiki/Student%27s_t-test.
+
+    return ds:
+        ds = xr.Dataset(dict(
+            x1m=x1m, x2m=x2m, s1=s1, s2=s2, n1=n1, n2=n2, dof=dof, pvalue=pvalue, x1m_minus_x2m=x1m_minus_x2m, err=err
+            ))
+    """
     #same_var = False
     #dim = 'time'
     #confidence = 0.95

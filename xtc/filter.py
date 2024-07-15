@@ -13,7 +13,7 @@ if __name__ == '__main__':
     tt.check('end import')
 #
 #start from here
-def selTS(ds, stormHour=72, wcHour=48, wcWindContHour=36, windthd=17, latMax=40): 
+def selTS(ds, stormHour=72, wcHour=48, wcWindContHour=36, windthd=17, latMax=40, dHour=None): 
     '''given storm tracks dataset ds, and storm filter parameters stormHour, wcHour and wcWindContHour,
     return the filtered dataset of tropical storm tracks (TS)
     **input**:
@@ -23,9 +23,18 @@ def selTS(ds, stormHour=72, wcHour=48, wcWindContHour=36, windthd=17, latMax=40)
         wcWindContHour(=36): minimum continous hourf of both warm core and windmax>windthd
         windthd(=17): wind speed threshold in the wcWindContHour condition
         latMax(=40): latitude boundary for the initial track point
+        dHour(=None): offset hours shared by all the three parameters stormHour, wcHour and wcWindContHour if not None
     **return**:
         ds_TS
     '''
+    if dHour is not None:
+        print('dHour:', dHour)
+        stormHour += dHour
+        print('stormHour:', stormHour-dHour, '->', stormHour)
+        wcHour += dHour
+        print('wcHour:', wcHour-dHour, '->', wcHour)
+        wcWindContHour += dHour
+        print('wcWindContHour:', wcWindContHour-dHour, '->', wcWindContHour)
     #lat range condition
     if latMax is None:
         latMax = 90.1

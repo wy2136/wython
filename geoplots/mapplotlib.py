@@ -214,5 +214,8 @@ def mapplot(lon=None, lat=None, **kw):
         pass#xticks2lon fails when some ticks have no ticklabels
     ax.set_xlim(min(lon_edge), max(lon_edge))
     ax.set_ylim(min(lat_edge), max(lat_edge))
+    #we usually don't need xlabel and ylabel for mapplot
+    ax.set_xlabel('')
+    ax.set_ylabel('')
 
     return

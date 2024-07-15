@@ -56,6 +56,7 @@ def trackplot(ds, **kwargs):
         lines = trackplot(ds.isel(year=slice(0,10)), alpha=1)
         plt.colorbar(lines.isel(year=0, storm=0).item())
     '''    
+    if 'vmax' in ds: ds = ds.rename(vmax='windmax')
     add_colorbar = kwargs.pop('add_colorbar', True)
     ax = kwargs.pop('ax', plt.gca())
 
@@ -74,6 +75,6 @@ def trackplot(ds, **kwargs):
     ax.autoscale()
     if add_colorbar:
         #plt.colorbar(lines.isel(year=0, storm=0).item())
-        plt.colorbar(lines.values.flat[0])
+        plt.colorbar(lines.values.flat[0], label='m/s')
     
     return lines

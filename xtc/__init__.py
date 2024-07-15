@@ -7,14 +7,14 @@ from .accessor import StormAccessor
 
 # old interface. keep xtc compatible to old scripts
 from .tracks import tc_read, tc_tracks
-from .basins import tc_basins
+from .basins import tc_basins, tracks_in_basin
 from .counts import tc_count
 from .ace import tc_ace, tc_ace_density
 from .density import tc_density
 from .plot import trackplot
 from .mask import get_landflag
 from .regions import tracks_in_region
-from .distance import tc_distance
+#from .distance import tc_distance
 from .dataset import load_tracks
 
 

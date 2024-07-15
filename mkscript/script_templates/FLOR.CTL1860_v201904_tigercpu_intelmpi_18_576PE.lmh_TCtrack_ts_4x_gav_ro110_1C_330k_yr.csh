@@ -59,7 +59,7 @@ module load netcdf/intel-16.0/hdf5-1.8.16/intel-mpi/4.4.0
 # ============== VARIABLES SET BY FREPP =============
 set in_data_dir  =  $ppdir
 set descriptor   =  ${expname}
-set out_dir      =  /tigress/wenchang/MODEL_OUT/${model}/${expname}/analysis_lmh/cyclones_gav_ro110_1C_330k
+set out_dir      =  /tigress/$USER/MODEL_OUT/${model}/${expname}/analysis_lmh/cyclones_gav_ro110_1C_330k
 set WORKDIR      =  $HOME/scratch/TMP
  
  set year = $ye1

@@ -30,6 +30,10 @@ def tc_density(ds, lowpass_on=True, genesis_on=False, W=10, genesis_condition=No
     # lowpass_on = False
     # genesis_on = True
 
+    #make sure lon in range [0,360]
+    ds['lon'] = ds['lon'].where(ds['lon']>=0, other=ds['lon']+360)
+    ds['lon'] = ds['lon'].where(ds['lon']<=360, other=ds['lon']-360)
+
     # lat/lon bins, centers and ranges
     lat_bins = np.arange(-90, 91, 1)
     lon_bins = np.arange(0, 361, 1)

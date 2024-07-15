@@ -37,7 +37,8 @@ def write_list_of_files_to_html(fobj_html):
         f.write(f'<h3>{label}</h3>\n')
         f.write('<div class="list-group">\n')
         #https://stackoverflow.com/questions/19490015/how-to-get-modification-date-of-a-symlink-in-python
-        getmtime = lambda x: max(os.stat(x).st_mtime, os.lstat(x).st_mtime ) # get the mtime of symlink or the realpath, whichever is later
+        #getmtime = lambda x: max(os.stat(x).st_mtime, os.lstat(x).st_mtime ) # get the mtime of symlink or the realpath, whichever is later
+        getmtime = lambda x: os.lstat(x).st_mtime # get the mtime of symlink, not the realpath
         ifiles.sort(key=getmtime, reverse=True) # descending by file mtime
         for i,ifile in enumerate(ifiles, start=1):
             mtime = datetime.datetime.fromtimestamp( os.stat(ifile).st_mtime ).strftime('%Y-%m-%d_%H:%M:%S')#mtime of the realpath
@@ -48,7 +49,8 @@ def write_list_of_files_to_html(fobj_html):
             elif ifile.endswith('.png'):
                 #s = f'<p>{ifile}<br><a href="{ifile}"><img src="{ifile}" width="{img_width}"></a></p>\n'
                 #s = f'<p><div class="caption"><strong>[{nfiles-i+1:02d}] {ifile}</strong></div><a href="{ifile}"><img src="{ifile}" class="img-responsive"></a></p>\n'
-                s = f'<p><div class="caption">[{mtime}] {ifile}</strong></div><a href="{ifile}"><img src="{ifile}" class="img-responsive"></a></p>\n'
+                #s = f'<p><div class="caption">[{mtime}] {ifile}</strong></div><a href="{ifile}"><img src="{ifile}" class="img-responsive"></a></p>\n'
+                s = f'<p><div class="caption"><strong>[{i:02d}/{nfiles:02d}] {ifile}</strong></div><a href="{ifile}"><img src="{ifile}" class="img-fluid rounded">    </a></p>\n'
             elif ifile.endswith('.ipynb'):
                 #s = f'<a class="list-group-item" href="https://nbviewer.jupyter.org/url/tigress-web.princeton.edu/%7Ewenchang/pub/{proj_name}/{ifile}">[{nfiles-i+1:02d}] {ifile}</a></li>\n'
                 s = f'<a class="list-group-item" href="https://nbviewer.jupyter.org/url/tigress-web.princeton.edu/%7Ewenchang/{proj_name}/{ifile}">[{mtime}] {ifile}</a></li>\n'
@@ -94,12 +96,13 @@ def main(html_file='index.html', img_width=800):
         return
     with open(html_file, 'w') as f: 
         f.write('<!DOCTYPE html>\n')
-        f.write('<html>\n')
+        f.write('<html data-bs-theme="dark">\n')
         f.write('<head>\n')
         f.write(f'<title>{proj_name}, Wenchang Yang</title>\n')
         f.write('<meta charset="utf-8">\n')
         f.write('<meta name="viewport" content="width=device-width, initial-scale=1.0">\n')
-        f.write('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">\n')
+        #f.write('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">\n')
+        f.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">\n')
         #f.write('<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>\n')
         #f.write('<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>\n')
         #f.write('<style>body {font-family: Helvetica, Arial, sans-serif} a {text-decoration: none}</style>\n')
@@ -109,6 +112,12 @@ def main(html_file='index.html', img_width=800):
 
         f.write('<body>\n')
         f.write('<div class="container">\n')
+        s = '''
+<div class="mt-2">
+<button type="button" class="btn btn-outline-secondary" id="btnSwitch">dark/light switch</button>
+</div> <!-- mt-2 -->
+'''
+        f.write(s)
         # title section
         f.write('<div class="page-header">\n')
         f.write('<div class="well">\n')
@@ -116,7 +125,7 @@ def main(html_file='index.html', img_width=800):
             f.write(f'{nav}\n')
         f.write(f'<h2>{proj_name}</h2>\n')
         f.write('<li>Wenchang Yang</li>\n')
-        f.write('<li>Department of Geosciences, Princeton University</li>\n')
+        f.write('<li>Princeton University</li>\n')
         f.write(f'<li>{time_stamp.strftime(tformat)}</li>\n')
         f.write('</div> <!-- well -->\n')
         f.write('</div> <!-- page-header -->\n')
@@ -142,7 +151,21 @@ def main(html_file='index.html', img_width=800):
             f.write('</div> <!-- list-group -->\n')
             f.write('\n')
 
+        f.write('<p class="text-center mt-4"><img width="100px" src="https://avatars.githubusercontent.com/u/8202276"></p>\n')
         f.write('</div> <!-- container -->\n')
+        s = f'''
+<script>
+document.getElementById("btnSwitch").addEventListener("click",()=>{{
+    if (document.documentElement.getAttribute("data-bs-theme") == "dark") {{
+        document.documentElement.setAttribute("data-bs-theme","light")
+    }}
+    else {{
+        document.documentElement.setAttribute("data-bs-theme","dark")
+    }}
+}})
+</script>
+'''
+        f.write(s)
         f.write('</body>\n')
         f.write('</html>\n')
 if __name__ == '__main__':

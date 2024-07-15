@@ -31,7 +31,7 @@ track_tags = {
 }
 track_tag = track_tags[model]#'cyclones_gav_ro110_1C_330k' for FLOR and 'cyclones_gav_ro110_2p5C_330k' for HIRAM
 storm_type = 'TS'# possible options: 'TS', 'C15w', 'allstorms'
-n_storms_bound = 200 # 10000 for TC seed; 200 for TC
+n_storms_bound = None #200 # 10000 for TC seed; 200 for TC #wy2024-02-17: set default to be None to use dynamic n_storms_bound (max # of tracks per year)
 if storm_type == 'TS':
     minMaxWindspeed = 17
 else:

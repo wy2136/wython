@@ -25,8 +25,14 @@ def tc_basins(latN=90, latS=-90):
                ]
     numbers = np.arange(len(names))
     # Regions_cls was replaced by Regions since version 0.5.0 of regionmask
+    if hasattr(regionmask, 'Regions'):
+        Regions = regionmask.Regions
+    else:
+        Regions = regionmask.Regions_cls
+        print('**old versions of regionmask is used: regionmask.Regions_cls**')
     #bs = regionmask.Regions_cls(name=name,
-    bs = regionmask.Regions(name=name,
+    #bs = regionmask.Regions(name=name,
+    bs =             Regions(name=name,
                                 numbers=numbers,
                                 names=names,
                                 abbrevs=abbrevs,

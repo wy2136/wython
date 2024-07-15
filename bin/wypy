@@ -5,8 +5,11 @@ if [ ! -f $1 ]; then
     echo "# $(date)" >> $1
     echo "if __name__ == '__main__':" >> $1
     echo "    import sys,os" >> $1
-    echo "    from misc.timer import Timer" >> $1
-    echo "    tt = Timer(f'[{os.getcwd()}] start ' + ' '.join(sys.argv))" >> $1
+    echo "    try:" >> $1
+    echo "        from misc.timer import Timer" >> $1
+    echo "        tt = Timer(f'[{os.getcwd()}] start ' + ' '.join(sys.argv))" >> $1
+    echo "    except:" >> $1
+    echo "        pass" >> $1
     echo "import sys, os.path, os, glob, datetime" >> $1
     echo "import xarray as xr, numpy as np, pandas as pd, matplotlib.pyplot as plt" >> $1
     echo "#more imports" >> $1
@@ -15,7 +18,10 @@ if [ ! -f $1 ]; then
     echo "#from misc import get_kws_from_argv" >> $1
     echo "#" >> $1
     echo "if __name__ == '__main__':" >> $1
-    echo "    tt.check('end import')" >> $1
+    echo "    try:" >> $1
+    echo "        tt.check('end import')" >> $1
+    echo "    except:" >> $1
+    echo "        pass" >> $1
     echo "#" >> $1
     echo "#start from here" >> $1
     if [ "$#" -ge 2 ]; then
@@ -33,7 +39,11 @@ if [ ! -f $1 ]; then
     echo "            wysavefig(figname, overwritefig=True)" >> $1
     echo "        else:" >> $1
     echo "            wysavefig(figname)" >> $1
-    echo "    tt.check(f'**Done**')" >> $1
+    echo " " >> $1
+    echo "    try:" >> $1
+    echo "        tt.check(f'**Done**')" >> $1
+    echo "    except:" >> $1
+    echo "        pass" >> $1
     echo "    print()" >> $1
     echo "    if 'notshowfig' in sys.argv or 'n' in sys.argv:" >> $1
     echo "        pass" >> $1

@@ -20,6 +20,8 @@ from matplotlib.pyplot import plot, figure, close, show
 print('[imported]: from matplotlib.pyplot import plot, figure, close, show')
 plt.ion()
 print('[executed]:', 'plt.ion()')
+from geoplots import mapplot
+print('[imported]:', 'from geoplots import mapplot')
 
 if __name__ == '__main__':
     tt.check('**done**')

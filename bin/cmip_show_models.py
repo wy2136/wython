@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # Wenchang Yang (wenchang@princeton.edu)
 # Fri Dec 10 22:13:27 EST 2021
+#show model/member info under a variable dir. wy.
 if __name__ == '__main__':
     from misc.timer import Timer
     tt = Timer(f'start {__file__}')

@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # Wenchang Yang (wenchang@princeton.edu)
 # Fri May 17 23:10:38 EDT 2019
+#wy2024-02-13: change the default behavior of n_storms_bound to be the maximum number of storms in the txt file
+#wy2024-02-09: add modeler parameter for experiments from other modelers
 #wy2021-05-17: add boolean param hour24 tc_read and tc_tracks; default is True to be compatible with old versions; if False, hour 00 will be used and track points at the end of the year will appear in the begining of the next year, e.g. 2000-12-31:24 -> 2001-01-01:00
-import datetime, glob
+import datetime, glob, sys
 import numpy as np, xarray as xr, pandas as pd
 
 def tc_read(ifile, n_storms_bound=None, hour24=True):
@@ -13,9 +15,6 @@ def tc_read(ifile, n_storms_bound=None, hour24=True):
     '''
     # e.g. ifile = '/tigress/wenchang/MODEL_OUT/CTL1860_noleap_tigercpu_intelmpi_18_576PE/analysis_lmh/cyclones_gav_ro110_1C_330k/atmos_11_11/Harris.TC/lmh_TCtrack_ts_4x.dat.warm.h29_25.TS.world.20110101-20120101.txt'
 
-    # length of the storm dimension
-    if n_storms_bound is None:
-        n_storms_bound = 200
 
     # columns of the txt file
     names = ('time', 'lon', 'lat', 'slp', 'windmax', 'tm')
@@ -26,6 +25,10 @@ def tc_read(ifile, n_storms_bound=None, hour24=True):
     isummaries = df.index[L]
     istarts = isummaries + 1 # indices of storm starts
     iends = np.hstack( ( isummaries[1:]-1, df.index[-1])) # indices of storm ends
+
+    # length of the storm dimension
+    if n_storms_bound is None:
+        n_storms_bound = L.sum()
 
     # save each variable associated the storms into a 2D ndarray
     shape = (n_storms_bound, 120) # n_storms, n_steps(6-hourly)
@@ -91,7 +94,7 @@ def tc_read(ifile, n_storms_bound=None, hour24=True):
 
     return ds
 
-def _tc_file(expname, year, en=None, track_tag=None, model='FLOR', username='wenchang', storm_type='TS'):
+def _tc_file(expname, year, en=None, track_tag=None, model='FLOR', username='wenchang', storm_type='TS', modeler=None):
     '''get the tc txt file based on some specified parameters.
     Input:
         expname:
@@ -105,8 +108,10 @@ def _tc_file(expname, year, en=None, track_tag=None, model='FLOR', username='wen
     else:
         if model in ('FLOR', 'flor'):
             pdir = f'/tigress/{username}/MODEL_OUT/{expname}'
+            if modeler is not None: pdir = f'/tigress/wenchang/analysis/TC/modelers/{modeler}/{expname}' # for experiments run by other users
         else:
-           pdir = f'/tigress/{username}/MODEL_OUT/{model}/{expname}'
+            pdir = f'/tigress/{username}/MODEL_OUT/{model}/{expname}'
+            if modeler is not None: pdir = f'/tigress/wenchang/analysis/TC/modelers/{modeler}/{model}/{expname}' # for experiments run by other users
         if en is not None:
             pdir = f'{pdir}/en{en:02d}'
 
@@ -119,15 +124,22 @@ def _tc_file(expname, year, en=None, track_tag=None, model='FLOR', username='wen
             track_tag = 'cyclones_gav_ro110_1C_330k'
 
     txtfile = f'{pdir}/analysis_lmh/{track_tag}/atmos_{year}_{year}/Harris.TC/lmh_TCtrack_ts_4x.dat.warm.h*.{storm_type}.world.*.txt'
+    txtfiles = glob.glob(txtfile)
+    if txtfiles:
+        #return glob.glob(txtfile)[0]
+        return txtfiles[0]
+    else:
+        print(f'**no files found**: {txtfile}') 
+        sys.exit()
+        
 
-    return glob.glob(txtfile)[0]
-
-def tc_tracks(expname, years, ens=None, track_tag=None, model='FLOR', username='wenchang', storm_type='TS', n_storms_bound=200, hour24=True):
+def tc_tracks(expname, years, ens=None, track_tag=None, model='FLOR', username='wenchang', storm_type='TS', n_storms_bound=None, hour24=True, modeler=None):
     '''construct tc dataset based on expname, years, ens, model, username, ...'''
 #     username = 'wenchang'
 #     expname = 'CTL1860_noleap_tigercpu_intelmpi_18_576PE'
 #     years = range(11, 41)
 #     expname = 'Agung_PI_ens_noleap'
+    print(model, expname, storm_type)
 
     if isinstance(years, int):
         years = (years,)
@@ -139,7 +151,7 @@ def tc_tracks(expname, years, ens=None, track_tag=None, model='FLOR', username='
         print(f'years {years[0]:04d}-{years[-1]:04d}:')
         for year in years:
             print(year, end='; ')
-            ifile = _tc_file(expname=expname, year=year, model=model, track_tag=track_tag, username=username, storm_type=storm_type)
+            ifile = _tc_file(expname=expname, year=year, model=model, track_tag=track_tag, username=username, storm_type=storm_type, modeler=modeler)
             ds_years.append(tc_read(ifile, n_storms_bound=n_storms_bound, hour24=hour24))
         print('year end')
         ds = xr.concat(ds_years, dim=pd.Index(years, name='year'))
@@ -152,7 +164,7 @@ def tc_tracks(expname, years, ens=None, track_tag=None, model='FLOR', username='
             print(f'years {years[0]:04d}-{years[-1]:04d}:')
             for year in years:
                 print(year, end='; ')
-                ifile = _tc_file(expname=expname, year=year, en=en, model=model, track_tag=track_tag, username=username, storm_type=storm_type)
+                ifile = _tc_file(expname=expname, year=year, en=en, model=model, track_tag=track_tag, username=username, storm_type=storm_type, modeler=modeler)
                 ds_years.append(tc_read(ifile, n_storms_bound=n_storms_bound, hour24=hour24))
             print('year end')
             ds_ens.append( xr.concat(ds_years, dim=pd.Index(years, name='year')) )

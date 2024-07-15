@@ -16,7 +16,7 @@ if [ ! -f $1 ]; then
     echo "##SBATCH --array=1-100#%32        # job array with index values 1, 2, ...,; max job # is 32 if specified" >> $1
     echo "##SBATCH --output=slurm-%A.%a.out # stdout file" >> $1
     echo "##SBATCH --error=slurm-%A.%a.err  # stderr file" >> $1
-    echo "set -ve" >> $1
+    echo "#set -ev" >> $1
     echo "##env settings" >> $1
     echo "#export PATH=/tigress/wenchang/miniconda3/bin:\$PATH" >> $1
     echo "#export PYTHONPATH=/tigress/wenchang/wython" >> $1

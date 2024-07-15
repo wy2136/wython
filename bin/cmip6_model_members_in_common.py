@@ -15,7 +15,14 @@ if __name__ == '__main__':
 #
 #start from here
 def cmip6_model_members(daname, expname, yearspan=None):
-    idir = f'/tigress/wenchang/data/cmip6/variables/{daname}/{expname}/wy_regrid_all_members'
+    idir = f'/tigress/wenchang/data/cmip6/variables/{daname}'
+    expname_versions = [s for s in os.listdir(idir) if s.startswith(expname)]
+    if expname_versions:
+        expname_versions.sort()
+        expname_version = expname_versions[-1]
+        idir = os.path.join(idir, expname_version, 'wy_regrid_all_members')
+    #idir = f'/tigress/wenchang/data/cmip6/variables/{daname}/{expname}/wy_regrid_all_members'
+    if not os.path.exists(idir): idir = idir.replace('wy_regrid_all_members', 'wy_regrid') #some exp/var have only one ens member for each model
     ifiles = [ncfile for ncfile in os.listdir(idir) if ncfile.endswith('.nc')]
     if not ifiles:
         #try to look at a sub directory under the original idir, e.g. 850hPa/
