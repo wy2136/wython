@@ -2,6 +2,8 @@
 # Wenchang Yang (wenchang@princeton.edu)
 # Fri Mar  3 15:40:12 EST 2023
 #2023-10-24: add input arg pfull and funcname selpfull (WY)
+#2024-09-18: add funcname selpfullnearest (WY)
+#2024-09-30: add parameter of modeler for experiments not from wenchang (e.g. from gvecchi)
 if __name__ == '__main__':
     import sys,os
     from misc.timer import Timer
@@ -25,6 +27,7 @@ model = get_kws_from_argv('model', default=None)
 expname = get_kws_from_argv('expname', default=None)
 dsname = get_kws_from_argv('dsname', default='atmos_month')
 years = get_kws_from_argv('years', default=None)
+modeler = get_kws_from_argv('modeler', default='wenchang')
 if years is not None:
     if ':' in years: #year range, e.g. years=1980:2000
         ss = years.split(':')
@@ -91,6 +94,30 @@ funcs['oceanfldmean'] = lambda da: da.pipe(rename_xy).sel(lon=slice(lonmin, lonm
     .load().geo.fldmean() #needs lonlatbox in sys.argv
 funcs['nino34'] = lambda da: da.pipe(rename_xy).sel(lon=slice(360-170, 360-120), lat=slice(-5, 5)) \
     .load().geo.fldmean() #nino3.4: 170-120W, 5S-5N: https://climatedataguide.ucar.edu/climate-data/nino-sst-indices-nino-12-3-34-4-oni-and-tni
+funcs['nino3'] = lambda da: da.pipe(rename_xy).sel(lon=slice(360-150, 360-90), lat=slice(-5, 5)) \
+    .load().geo.fldmean() #nino3: 150-90W, 5S-5N: https://climatedataguide.ucar.edu/climate-data/nino-sst-indices-nino-12-3-34-4-oni-and-tni
+def func_indexNS(da):
+    """sst index defined by [190-240,5-10N]/2 + [190-240,10-5S]/2 - [190-240, 5S-5N]"""
+    lon0, lon1 = 190, 240
+    lat0, lat1 = 5, 10
+    da = da.pipe(rename_xy)
+    daN = da.sel(lon=slice(lon0,lon1), lat=slice(lat0, lat1)).geo.fldmean() # lon0 to lon1, lat0 to lat1
+    daS = da.sel(lon=slice(lon0,lon1), lat=slice(-lat1, -lat0)).geo.fldmean() # lon0 to lon1, -lat1 to -lat0
+    daEQ = da.sel(lon=slice(lon0,lon1), lat=slice(-lat0, lat0)).geo.fldmean() # lon0 to lon1, -lat0 to lat0
+    
+    return (daN + daS)/2 - daEQ
+funcs['indexNS'] = func_indexNS
+def func_indexEW(da):
+    """sst index defined by [140-170,5S-5N] - [200-260, 5S-5N]"""
+    lon0, lon1 = 140, 170 #west lon range
+    lon2, lon3 = 190, 270 # old values from Jingyi's testing codes:  200, 260 #east lon range
+    lat0 = 5 #north-south range 5S-5N
+    da = da.pipe(rename_xy)
+    daW = da.sel(lon=slice(lon0,lon1), lat=slice(-lat0, lat0)).geo.fldmean() # lon0 to lon1, -lat0 to lat0
+    daE = da.sel(lon=slice(lon2,lon3), lat=slice(-lat0, lat0)).geo.fldmean() # lon2 to lon3, -lat0 to lat0
+    
+    return daW - daE
+funcs['indexEW'] = func_indexEW
 
 #zonal mean
 funcs['zonalmean'] = lambda da: da.pipe(rename_xy).load().mean('lon', keep_attrs=True)
@@ -114,6 +141,8 @@ funcs['selnearest'] = lambda da: da.pipe(rename_xy).sel(lon=lon0, lat=lat0, meth
 
 #pfull selection by interpolation; needs pfull in sys.argv
 funcs['selpfull'] = lambda da: da.interp(pfull=pfull).load()
+#pfull selection by nearest; needs pfull in sys.argv
+funcs['selpfullnearest'] = lambda da: da.sel(pfull=pfull, method='nearest').load()
 
 #sea ice extent, daname=None
 S = 4*np.pi*6370**2/1e6 #earth surface area, million km**2
@@ -186,6 +215,8 @@ elif funcname == 'none':
     funcname_output = dsname
 elif funcname in ('selpfull',):
     funcname_output = f'pfull{pfull:g}' 
+elif funcname in ('selpfullnearest',):
+    funcname_output = f'pfullnearest{pfull:g}' 
 elif funcname in ('vpd',):
     daname = None
     funcname_output = f'vpd_{season}mean' if season is not None else 'vpd_annualmean'
@@ -203,10 +234,10 @@ if __name__ == '__main__':
     #from wyconfig import * #my plot settings
     if 'update' in sys.argv:
         #api: update_modelout_data(daname, model, expname, dsname='atmos_month', ens=None, func=None, funcname='wy', cleanup=True)
-        da = update_modelout_data(daname, model, expname, dsname=dsname, ens=ens, func=func, funcname=funcname_output)
+        da = update_modelout_data(daname, model, expname, dsname=dsname, ens=ens, func=func, funcname=funcname_output, modeler=modeler)
     else: 
         #api: get_modelout_data(daname, model, expname, dsname='atmos_month', ens=None, years=None, func=None, funcname='wy', ofile=None, savedata=True):
-        da = get_modelout_data(daname, model, expname, dsname=dsname, ens=ens, years=years, func=func, funcname=funcname_output)
+        da = get_modelout_data(daname, model, expname, dsname=dsname, ens=ens, years=years, func=func, funcname=funcname_output, modeler=modeler)
     
     #savefig
     if 'savefig' in sys.argv or 's' in sys.argv:

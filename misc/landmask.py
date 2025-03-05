@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # Wenchang Yang (wenchang@princeton.edu)
 # Tue Jun 30 17:23:41 EDT 2020
+#wy2025-01-19: update to follow regionmask new api
 if __name__ == '__main__':
     from misc.timer import Timer
     tt = Timer(f'start {__file__}')
@@ -14,7 +15,11 @@ if __name__ == '__main__':
     tt.check('end import')
 #
 #start from here
-land = regionmask.defined_regions.natural_earth.land_110
+try:
+    land = regionmask.defined_regions.natural_earth.land_110
+except AttributeError: #wy20250119: update to follow rigionmask new api
+    land = regionmask.defined_regions.natural_earth_v5_1_2.land_110
+    print('[regionmask new api]: regionmask.defined_regions.natural_earth_v5_1_2.land_110 (old: regionmask.defined_regions.natural_earth.land_110)')
 def flagland(da):
     """Given input DataArray with lon/lat info, return landflag DataArray (1 over land and 0 over ocean)"""
     #rename grid names from GFDL GCMs

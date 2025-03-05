@@ -58,6 +58,14 @@ def write_list_of_files_to_html(fobj_html, extension, label):
                 #s = f'<p><div class="caption"><strong>[{nfiles-i+1:02d}] {ifile}</strong></div><a href="{ifile}"><img src="{ifile}" class="img-responsive"></a></p>\n'
                 #s = f'<p><div class="caption"><strong>[{i:02d}/{nfiles:02d}] {ifile}</strong></div><a href="{ifile}"><img src="{ifile}" class="img-responsive"></a></p>\n'
                 s = f'<p><div class="caption"><strong>[{i:02d}/{nfiles:02d}] {ifile}</strong></div><a href="{ifile}"><img src="{ifile}" class="img-fluid rounded"></a></p>\n'
+                #add pyscript link next to the title of the figure
+                pyfile = ifile.replace('.png', '.py').replace('.gif', '.py')
+                if os.path.exists(pyfile):
+                    s = s.replace('</div>', f' (<a href="{pyfile}" title="{pyfile}">script</a>)</div>')
+                else:
+                    pyfile = ifile.split('__')[0] + '.py'
+                    if os.path.exists(pyfile):
+                        s = s.replace('</div>', f' (<a href="{pyfile}" title="{pyfile}">script</a>)</div>')
             elif ifile.endswith('.ipynb'):
                 #s = f'<a class="list-group-item" href="https://nbviewer.jupyter.org/url/tigress-web.princeton.edu/%7Ewenchang/pub/{proj_name}/{ifile}">[{nfiles-i+1:02d}] {ifile}</a></li>\n'
                 s = f'<a class="list-group-item" href="https://nbviewer.jupyter.org/url/tigress-web.princeton.edu/%7Ewenchang/pub/{proj_name}/{ifile}">[{i:02d}/{nfiles:02d}] {ifile}</a></li>\n'

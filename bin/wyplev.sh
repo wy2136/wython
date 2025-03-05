@@ -7,9 +7,15 @@
 # ./wyplev.sh 01100101.atmos_month.nc vcomp vcomp.plev850.nc 85000
 # ./wyplev.sh 01100101.atmos_month.nc vcomp vcomp.plev850200.nc "85000 20000"
 # note: need to run 'python -m misc.get_pkbk model=xxx expname=xxx' to get the pkbk.nc file first before running this script
-source /projects/GEOCLIM/wenchang/fre-nctools/site-configs/princeton/env.sh
-export PATH=/projects/GEOCLIM/wenchang/fre-nctools/build/tigercpu_intelmpi_18/princeton/bin:$PATH
-run_interp=/projects/GEOCLIM/wenchang/fre-nctools/postprocessing/plevel/plevel.sh
+##tiger2
+#source /projects/GEOCLIM/wenchang/fre-nctools/site-configs/princeton/env.sh
+#export PATH=/projects/GEOCLIM/wenchang/fre-nctools/build/tigercpu_intelmpi_18/princeton/bin:$PATH
+#run_interp=/projects/GEOCLIM/wenchang/fre-nctools/postprocessing/plevel/plevel.sh
+##tiger3
+source /scratch/gpfs/GEOCLIM/wenchang/tiger3/FRE-NCtools/v20241022/wyset_env_tiger3.sh
+#export PATH=/scratch/gpfs/GEOCLIM/wenchang/tiger3/FRE-NCtools/v20241022/build/postprocessing/plevel:$PATH #the dir of PLEV.exe
+#run_interp=/scratch/gpfs/GEOCLIM/wenchang/tiger3/FRE-NCtools/v20241022/postprocessing/plevel/plevel.sh
+run_interp=/scratch/gpfs/GEOCLIM/wenchang/tiger3/FRE-NCtools/v20250115/bin/plevel.sh
 
 #input args
 ifile=$1 #e.g., 01100101.atmos_month.nc

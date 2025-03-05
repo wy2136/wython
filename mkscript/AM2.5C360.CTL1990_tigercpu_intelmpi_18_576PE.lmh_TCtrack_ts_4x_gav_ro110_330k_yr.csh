@@ -15,35 +15,23 @@ set echo
 #module use -a /home/fms/local/modulefiles
 source /usr/share/Modules/init/csh
 module purge
-#module load intel/18.0/64/18.0.3.222
-#module load intel-mpi/intel/2018.3/64
-#module load hdf5/intel-16.0/intel-mpi/1.8.16
-#module load netcdf/intel-16.0/hdf5-1.8.16/intel-mpi/4.4.0
-source /scratch/gpfs/GEOCLIM/wenchang/tiger3/tiger3_intelmpi_24.csh
-module load geoclim/anaconda3/2024.10
-set prompt = "$user" #seems necessary for the activate command below
-conda activate geoclim
-which python
-which ncks
+module load intel/18.0/64/18.0.3.222
+module load intel-mpi/intel/2018.3/64
+module load hdf5/intel-16.0/intel-mpi/1.8.16
+module load netcdf/intel-16.0/hdf5-1.8.16/intel-mpi/4.4.0
 
  set anho           = $1
  #set anho           = AANNHHOO
-
-#set ensemble
-
 # set echo                                
  set ye1            = $anho
  set ye2            = $anho
- set model          = FLOR
- set expname        = CTL1860_v201904_tigercpu_intelmpi_18_576PE
+ set model          = AM2.5C360
+ set expname        = CTL1990_tigercpu_intelmpi_18_576PE
  set scriptname     = ${expname}.lmh_TCtrack_ts_4x_gav_ro110_1C_330k_yr.csh
  set thisdir        = $cwd
  set thisscript     = $thisdir/$scriptname
  set ppdir          = /tigress/wenchang/MODEL_OUT/${model}/${expname}/POSTP
- #set ppdir          = $HOME/scratch/${model}/work/${expname}/POSTP # use this ppdir in case model output still in the scratch disk
- set ppdir          = $HOME/${model}/work/${expname}/POSTP # use this ppdir in case model output still in the scratch disk
- #set rootTCanalysis = /tigress/wenchang/analysis/TC
- set rootTCanalysis = /scratch/gpfs/GEOCLIM/wenchang/analysis/TC #
+ set rootTCanalysis = /tigress/wenchang/analysis/TC
 
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -66,10 +54,8 @@ which ncks
 
 # ============== VARIABLES SET BY FREPP =============
 set in_data_dir  =  $ppdir
-set descriptor   =  ${model}_{expname}
-#set out_dir      =  /tigress/$USER/MODEL_OUT/${model}/${expname}/analysis_lmh/cyclones_gav_ro110_1C_330k
-set out_dir      =  $thisdir/analysis_lmh/cyclones_gav_ro110_2p5C_330k
-#set out_dir      =  /scratch/gpfs/GEOCLIM/${user}/tiger3/${model}/work/${expname}/analysis_lmh/cyclones_gav_ro110_2p5C_330k
+set descriptor   =  ${expname}
+set out_dir      =  /tigress/wenchang/MODEL_OUT/${model}/${expname}/analysis_lmh/cyclones_gav_ro110_1C_330k
 set WORKDIR      =  $HOME/scratch/TMP
  
  set year = $ye1
@@ -116,24 +102,18 @@ endif
 
 #module load ifort netcdf/4.2 gcp
 #module load netcdf hdf5
-ncks -v slp ${f01}.nc  ${f00}.slp.nc
-ncks -v vort850 ${f01}.nc  ${f00}.vort850.nc
-ncks -v tm ${f01}.nc  ${f00}.tm.nc
 ncks -v u_ref ${f01}.nc  ${f00}.u_ref.nc
 ncks -v v_ref ${f01}.nc  ${f00}.v_ref.nc
+ncks -v tm ${f01}.nc  ${f00}.tm.nc
+ncks -v slp ${f01}.nc  ${f00}.slp.nc
+ncks -v vort850 ${f01}.nc  ${f00}.vort850.nc
 # 
-# WY: convert noleap or julian calendar to proleptic gregorian, obsolate since 2020-10-28, use wy_modify_time_encoding.py instead
-#python $rootTCanalysis/convert_to_pg_calendar.py ${f00}.slp.nc
-#python $rootTCanalysis/convert_to_pg_calendar.py ${f00}.vort850.nc
-#python $rootTCanalysis/convert_to_pg_calendar.py ${f00}.tm.nc
-#python $rootTCanalysis/convert_to_pg_calendar.py ${f00}.u_ref.nc
-#python $rootTCanalysis/convert_to_pg_calendar.py ${f00}.v_ref.nc
-#WY: modify time axis encoding of units
-python $rootTCanalysis/wy_modify_time_encoding.py ${f00}.slp.nc
-python $rootTCanalysis/wy_modify_time_encoding.py ${f00}.vort850.nc
-python $rootTCanalysis/wy_modify_time_encoding.py ${f00}.tm.nc
-python $rootTCanalysis/wy_modify_time_encoding.py ${f00}.u_ref.nc
-python $rootTCanalysis/wy_modify_time_encoding.py ${f00}.v_ref.nc
+# WY: convert noleap or julian calendar to proleptic gregorian  
+python $rootTCanalysis/convert_to_pg_calendar.py ${f00}.u_ref.nc
+python $rootTCanalysis/convert_to_pg_calendar.py ${f00}.v_ref.nc
+python $rootTCanalysis/convert_to_pg_calendar.py ${f00}.tm.nc
+python $rootTCanalysis/convert_to_pg_calendar.py ${f00}.slp.nc
+python $rootTCanalysis/convert_to_pg_calendar.py ${f00}.vort850.nc
 #
 set in_files=$tmpdir/${f00}.slp.nc
 set proc_files=""
@@ -154,13 +134,12 @@ cat >! $inputname <<EOF
     cint_slp = 2.
     one_variable_per_file = .true.
     r_offset_warm = 110.
-    dt_crit_warm = 1.
+    dt_crit_warm = 2.! default is 2.
     r_crit_warm = 330.
 /
 EOF
 
-#/tigress/gvecchi/ANALYSIS/LUCAS_TRACKER/CODE/bin/track_gav.exe  $inputname || exit
-/scratch/gpfs/GEOCLIM/wenchang/tiger3/LucasTracker/bin/track_gav_wy.exe  $inputname || exit #wy: tiger3
+/tigress/gvecchi/ANALYSIS/LUCAS_TRACKER/CODE/bin/track_gav.exe  $inputname || exit
 
 #Copy tracker output in case something goes wrong below
 mkdir -p $out_dir/atmos_${yr1}_${yr2}/Harris.TC
@@ -168,9 +147,7 @@ cp *.nml *.dat  $out_dir/atmos_${yr1}_${yr2}/Harris.TC
 
 # track sorter
 #module load python
-#module load anaconda/2.1.0
-conda activate geoclim-py2.7
-which python
+module load anaconda/2.1.0
 #python /tigress/gvecchi/ANALYSIS/LUCAS_TRACKER/HIRO_py_scripts/convert_time_1583-.py $outputname
 #cp ${outputname}* $out_dir/atmos_${yr1}_${yr2}/Harris.TC
 
@@ -200,4 +177,4 @@ cp *.txt $out_dir/atmos_${yr1}_${yr2}/Harris.TC
 tixe:
 rm ${tmpdir}/*
 rmdir ${tmpdir}
-exit 0
+exit

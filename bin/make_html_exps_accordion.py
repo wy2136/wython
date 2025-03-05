@@ -38,8 +38,18 @@ def main(html_file=None, model='FLOR', darkmode=True, modeler='wenchang'):
     #get expnames given $model
     rootdir = '/tigress/wenchang/MODEL_OUT'
     if modeler != 'wenchang': rootdir = os.path.join(rootdir, modeler) #e.g., modeler=gvecchi; rootdir = '/tigress/wenchang/MODEL_OUT/gvecchi'
-    if model != 'FLOR': rootdir = os.path.join(rootdir, model)
-    dirs = [d for d in os.listdir(rootdir) if os.path.isdir(os.path.join(rootdir, d))] #directories under $rootdir
+    #if model != 'FLOR': rootdir = os.path.join(rootdir, model)
+    if modeler == 'gvecchi' and model == 'FLOR':
+        pass #Gabe's FLOR experiment outputs doesn't have the FLOR parent dir
+    else:
+        rootdir = os.path.join(rootdir, model) #wy: FLOR experiment output also moved to MODEL_OUT/{model}/
+    if os.path.exists(rootdir):
+        dirs = [d for d in os.listdir(rootdir) if os.path.isdir(os.path.join(rootdir, d))] #directories under $rootdir
+    else:
+        print(f'    [not exists]: {rootdir}')
+        if os.path.exists(html_file):
+            archive_file(html_file)
+        return
     expnames = [d for d in dirs
         if len(glob.glob(f'{rootdir}/{d}/POSTP/*.atmos_month.nc')) > 0
         or len(glob.glob(f'{rootdir}/{d}/en*/POSTP/*.atmos_month.nc')) > 0
@@ -49,8 +59,7 @@ def main(html_file=None, model='FLOR', darkmode=True, modeler='wenchang'):
     else:
         if os.path.exists(html_file):
             archive_file(html_file)
-        else:
-            print(f'  **no experiments found for model {model} by {modeler}**')
+        print(f'  **no experiments found for model {model} by {modeler}**')
         return
     #test the permission
     try:
@@ -191,6 +200,7 @@ def main(html_file=None, model='FLOR', darkmode=True, modeler='wenchang'):
                     if 'POSTP' in os.listdir(odir_en):
                         postpdir = os.path.join(odir_en, 'POSTP')
                         years = [int(ncfile[:4]) for ncfile in os.listdir(postpdir) if ncfile.endswith('atmos_month.nc')]
+                        if not years: continue
                         years.sort()
                         year_start, year_end = years[0], years[-1]
                         n_years = len(years)
@@ -215,7 +225,7 @@ def main(html_file=None, model='FLOR', darkmode=True, modeler='wenchang'):
             if os.path.exists(tcdir):
                     f.write(f'  <li>TC analysis dir: {tcdir}</li>\n')
             #experiment dir
-            if 'exp' in os.listdir(odir):
+            if 'exp' in os.listdir(odir) and os.path.exists(os.path.join(odir, 'exp')):
                 expdir = os.path.realpath(os.path.join(odir, 'exp'))
                 f.write(f'  <li>experiment dir: {expdir}</li>\n')
                 #check if readme file exists
@@ -295,9 +305,9 @@ if __name__ == '__main__':
     #gvecchi
     models_all_gvecchi = ['FLOR', 'AM2.5', 'AM2.5C360', 'HIRAM']#, 'AM4_urban'] #no experiments for AM4_urban
     #gabe rios
-    models_all_gr7610 = ['FLOR_work', 'AM2.5_work', 'AM2.5C360_work', 'HIRAM_work'] # see /tigress/MODEL_OUT/gr7610/
+    models_all_gr7610 = ['AM2.5', 'FLOR', 'HIRAM', 'FLOR_work', 'AM2.5_work', 'AM2.5C360_work', 'HIRAM_work'] # see /tigress/MODEL_OUT/gr7610/
     #chenggong
-    models_all_cw55 = ['AM2.5','HIRAM'] #
+    models_all_cw55 = ['AM2.5','HIRAM', 'AM4'] #
     models_in_work = [m+'_work' for m in models_all_cw55]
     models_all_cw55 += models_in_work
     #maya
@@ -307,7 +317,8 @@ if __name__ == '__main__':
     #maofeng
     models_all_maofeng = ['FLOR','AM4', 'FLOR_work', 'AM4_work'] #
     #haozhe
-    models_all_hh6765 = ['AM2.5_work','AM4_work', 'AM4mg2_work'] #
+    models_all_hh6765 = ['AM2.5_work','AM4_work', 'AM4mg2_work', 'AM2.1p1_work', 'CM2.1p1_work', 'FLOR_work',
+        'AM2.1p1', 'AM2.5', 'AM4', 'AM4mg2', 'CM2.1p1', 'FLOR'] #
 
     model = get_kws_from_argv('model', default='AM2.1')
     modeler = get_kws_from_argv('modeler', default='wenchang')

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # Wenchang Yang (wenchang@princeton.edu)
 # Tue Oct 18 12:14:44 EDT 2022
+#wy2025/01/19: update FLOR output location under MODEL_OUT and locations of output under workdir
+#wy2024/09/30: add the modeler parameter for experiments not from wenchang (e.g. from gvecchi)
 #wy2023/11/02: drop the 'ens' dim/coords when dataarray is loaded from a saved file to avoid error in the later concat
 if __name__ == '__main__':
     import sys
@@ -27,29 +29,34 @@ def _get_postp_files(idir, dsname='atmos_month'):
     ifiles = [os.path.join(idir, f'{year:04d}0101.{dsname}.nc') for year in years]
     return ifiles, years
 
-def get_modelout_files(model, expname, dsname='atmos_month', ens=None):
+def get_modelout_files(model, expname, dsname='atmos_month', ens=None, modeler='wenchang'):
     """get all the modelout files and years under the POSTP dir (idir) given the model, expname, dsname(atmos_month by default) and ens (None by default) """
     #daname = 'netrad_toa'
     #dsname = 'atmos_month'
     #model = 'AM2.5'
     #expname = 'CTL1990s_tigercpu_intelmpi_18_540PE'
+    #modeler = 'wenchang' #or 'gvecchi'
     if ens is None:
-        idir = os.path.join('/tigress/wenchang/MODEL_OUT', model, expname, 'POSTP')
+        idir = os.path.join(f'/tigress/{modeler}/MODEL_OUT', model, expname, 'POSTP')
     else:
-        idir = os.path.join('/tigress/wenchang/MODEL_OUT', model, expname, f'en{ens:02d}', 'POSTP')
-    if model in ('FLOR',):
-        idir = idir.replace(f'{model}/', '')
+        idir = os.path.join(f'/tigress/{modeler}/MODEL_OUT', model, expname, f'en{ens:02d}', 'POSTP')
+    #if model in ('FLOR',):
+    #    idir = idir.replace(f'{model}/', '') #wy20250119: FLOR experiment output moved from MODEL_OUT/ to MODEL_OUT/FLOR/ from tiger3
     #model output from tigress
     tigress_result = _get_postp_files(idir, dsname=dsname) #model output files, None if not exist
 
-    #model output from scratch
-    idir = idir.replace('/tigress/wenchang/MODEL_OUT', '/home/wenchang/scratch') \
-        .replace(f'{expname}', f'work/{expname}')
-    if model in ('FLOR',):
-        idir = idir.replace('home/wenchang/scratch', 'home/wenchang/scratch/FLOR')
+    #model output from scratch: only for modeler = 'wenchang'
+    #idir = idir.replace(f'/tigress/{modeler}/MODEL_OUT', '/home/wenchang/scratch') \
+    #    .replace(f'{expname}', f'work/{expname}')
+    #if model in ('FLOR',):
+    #    idir = idir.replace('home/wenchang/scratch', 'home/wenchang/scratch/FLOR')
+    #if ens is not None:
+    #    idir = idir.replace(f'en{ens:02d}/', '') \
+    #        .replace('_tigercpu_', f'_e{ens}_tigercpu_')
+    #w20250119: updated in tiger3
+    idir = f'/home/wenchang/{model}/work/{expname}/POSTP'
     if ens is not None:
-        idir = idir.replace(f'en{ens:02d}/', '') \
-            .replace('_tigercpu_', f'_e{ens}_tigercpu_')
+        idir = idir.replace('_tiger', f'_e{ens}_tiger')
     scratch_result = _get_postp_files(idir, dsname=dsname)
 
     if scratch_result is None: #data not in work dir either
@@ -80,7 +87,7 @@ def get_modelout_files(model, expname, dsname='atmos_month', ens=None):
     #restrict years if specified
     return ifiles, years
 
-def _get_modelout_data(daname, model, expname, dsname='atmos_month', ens=None, years=None, func=None, funcname='wy', ofile=None, savedata=True):
+def _get_modelout_data(daname, model, expname, dsname='atmos_month', ens=None, years=None, func=None, funcname='wy', ofile=None, savedata=True, modeler='wenchang'):
     """get model output data given daname, model, expname, ens(None or Int), years(None), func(none) and funcname('wy'), and save to ofile(None).
     expect non-ensemble output or single ensemble member output.
     If daname is None, func will be applied to Dataset(ds). Otherwise, func is applied to DataArray(da, or ds[daname])."""
@@ -88,7 +95,7 @@ def _get_modelout_data(daname, model, expname, dsname='atmos_month', ens=None, y
     if func is None:
         func = lambda x: x.load()
     #ifiles
-    ifiles_all, years_all = get_modelout_files(model=model, expname=expname, dsname=dsname, ens=ens)
+    ifiles_all, years_all = get_modelout_files(model=model, expname=expname, dsname=dsname, ens=ens, modeler=modeler)
     if years is None: #sel all available years for process
         ifiles_p = ifiles_all
         years_p = years_all
@@ -175,7 +182,7 @@ def _get_modelout_data(daname, model, expname, dsname='atmos_month', ens=None, y
     
     return da
 
-def _get_modelout_data_ens(daname, model, expname, dsname='atmos_month', ens=None, years=None, func=None, funcname='wy', ofile=None, savedata=True):
+def _get_modelout_data_ens(daname, model, expname, dsname='atmos_month', ens=None, years=None, func=None, funcname='wy', ofile=None, savedata=True, modeler='wenchang'):
     """get model output data given daname, model, expname, ens(None or Int), years(None), func(none) and funcname('wy'), and save to ofile(None).
     expect ensemble output"""
     nens = len(list(ens))
@@ -198,7 +205,7 @@ def _get_modelout_data_ens(daname, model, expname, dsname='atmos_month', ens=Non
     for ii in ens:
         print(f'{ii:02d} of {nens:02d}:')
         da = _get_modelout_data(daname=daname, model=model, expname=expname, dsname=dsname,
-            ens=ii, years=years, func=func, funcname=funcname, savedata=False)
+            ens=ii, years=years, func=func, funcname=funcname, savedata=False, modeler=modeler)
         if 'ens' in da.dims: da = da.drop_vars('ens').squeeze('ens') #wy2023/11/02: drop the ens dim/coords when it's loaded from file to avoid error in concat
         das.append(da)
     print('concatenating over ens...')
@@ -214,16 +221,16 @@ def _get_modelout_data_ens(daname, model, expname, dsname='atmos_month', ens=Non
         print('[saved]:', ofile)
     return da
 
-def get_modelout_data(daname, model, expname, dsname='atmos_month', ens=None, years=None, func=None, funcname='wy', ofile=None, savedata=True):
+def get_modelout_data(daname, model, expname, dsname='atmos_month', ens=None, years=None, func=None, funcname='wy', ofile=None, savedata=True, modeler='wenchang'):
     """higher level wrap on _get_modelout_data (for non-ens or single-ens output) and _get_modelout_data_ens (for ens output)"""
     if ens is None or type(ens) is int:
         return _get_modelout_data(daname=daname, model=model, expname=expname, dsname=dsname,
-            ens=ens, years=years, func=func, funcname=funcname, ofile=ofile, savedata=savedata)
+            ens=ens, years=years, func=func, funcname=funcname, ofile=ofile, savedata=savedata, modeler=modeler)
     else:
         return _get_modelout_data_ens(daname=daname, model=model, expname=expname, dsname=dsname,
-            ens=ens, years=years, func=func, funcname=funcname, ofile=ofile, savedata=savedata)
+            ens=ens, years=years, func=func, funcname=funcname, ofile=ofile, savedata=savedata, modeler=modeler)
 
-def update_modelout_data(daname, model, expname, dsname='atmos_month', ens=None, func=None, funcname='wy', cleanup=True):
+def update_modelout_data(daname, model, expname, dsname='atmos_month', ens=None, func=None, funcname='wy', cleanup=True, modeler='wenchang'):
     """get data from the still running experiment; used cached result if exists to speed up. 
     if cleanup == False, delete the cached result and redo the process from scratch."""
     print(model, expname, dsname, daname, funcname)
@@ -251,18 +258,18 @@ def update_modelout_data(daname, model, expname, dsname='atmos_month', ens=None,
             for ifile in ifiles:
                 os.remove(ifile)
                 print('[old cache removed]:', ifile)
-            #da = get_modelout_data(daname=daname, model=model, expname=expname, dsname=dsname, ens=ens, func=func, funcname=funcname)
+            #da = get_modelout_data(daname=daname, model=model, expname=expname, dsname=dsname, ens=ens, func=func, funcname=funcname, modeler=modeler)
             #return da
     else:
-        da = get_modelout_data(daname=daname, model=model, expname=expname, dsname=dsname, ens=ens, func=func, funcname=funcname)
+        da = get_modelout_data(daname=daname, model=model, expname=expname, dsname=dsname, ens=ens, func=func, funcname=funcname, modeler=modeler)
         return da
-    _, years = get_modelout_files(model=model, expname=expname, dsname=dsname, ens=ens)
+    _, years = get_modelout_files(model=model, expname=expname, dsname=dsname, ens=ens, modeler=modeler)
     if year_end_cached >= years[-1]: #no update
         da = da_
         print('[loaded]:', s)
     else:
         da = get_modelout_data(daname=daname, model=model, expname=expname, dsname=dsname, ens=ens, func=func, funcname=funcname,
-            years=range(year_end_cached+1, years[-1]+1))
+            years=range(year_end_cached+1, years[-1]+1), modeler=modeler)
         da = xr.concat([da_, da], dim='time')
     print()
     return da
@@ -274,6 +281,7 @@ if __name__ == '__main__':
         from wyconfig import * #my plot settings
         model = 'CM2.1p1'
         expname = 'CTL1860_1pct2xCO2_tigercpu_intelmpi_18_80PE'
+        modeler = 'wenchang'
         if 'funcds' in sys.argv:
             #global sea ice area (normalized by Earth area)
             daname = None
@@ -290,7 +298,7 @@ if __name__ == '__main__':
             
             #get data over specified years
             years = range(101,121)
-            da = get_modelout_data(daname=daname, model=model, expname=expname, years=years, func=func, funcname=funcname)
+            da = get_modelout_data(daname=daname, model=model, expname=expname, years=years, func=func, funcname=funcname, modeler=modeler)
             print()
             
             #get all available data. use cached result
@@ -305,7 +313,7 @@ if __name__ == '__main__':
         model = get_kws_from_argv('model', 'CM2.1p1')
         expname = get_kws_from_argv('expname', 'CTL1860_1pct2xCO2_tigercpu_intelmpi_18_80PE')
         dsname = get_kws_from_argv('dsname', 'atmos_month')
-        r = get_modelout_files(model=model, expname=expname, dsname=dsname)
+        r = get_modelout_files(model=model, expname=expname, dsname=dsname, modeler=modeler)
         if r is None:
             print('No files found for', model, expname, dsname)
         elif r is not None:

@@ -41,8 +41,13 @@ def register_cmap(name, cmap_data):
     """
     #new version: 2021-06-03 by wy
     cmap = LinearSegmentedColormap(name, mpl_data, _cmap_data.shape[0])
-    plt.register_cmap(cmap=cmap)
-    plt.register_cmap(cmap=cmap.reversed())
+    try:
+        plt.register_cmap(cmap=cmap)
+        register_cmap(cmap=cmap.reversed())
+    except AttributeError: #api change for matplotlib 3.6.0: matplotlib.cm.register_cmap; use matplotlib.colormaps.register instead
+        plt.colormaps.register(cmap=cmap)
+        plt.colormaps.register(cmap=cmap.reversed())
+        
 
     print(f'[registered colormaps]: {name} and {name}_r')
 

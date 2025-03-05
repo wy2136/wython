@@ -75,7 +75,7 @@ with open(ifile) as fi:
             istr, ostr = '= FLOR', f'= {model}'
             ocontent = do_replace(ocontent, istr, ostr)
         if model in ('FLOR',):
-            istr, ostr = '${model}/', ''
+            istr, ostr = '${model}/${expname}', '${expname}'
             ocontent = do_replace(ocontent, istr, ostr) # FLOR outputs are directly under MODEL_OUT
         elif model in ('AM2.5C360', 'AM2.5C360ktc2'):
             istr, ostr = 'dt_crit_warm = 1.', 'dt_crit_warm = 2.! default is 2.'

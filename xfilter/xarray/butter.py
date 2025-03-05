@@ -32,9 +32,11 @@ def lowpass(da, cutoff=0.25, order=2, dim=None, fs=1.0, **kws):
 
     kwargs = dict(axis=axis, cutoff=cutoff, order=order, fs=fs, **kws)
 
-    return xr.apply_ufunc(lp, da,
-        kwargs=kwargs, dask='allowed'
-        )
+    with xr.set_options(keep_attrs=True):
+        da_filtered = xr.apply_ufunc(lp, da,
+            kwargs=kwargs, dask='allowed'
+            )
+    return da_filtered
 
 def highpass(da, cutoff=0.25, order=2, dim=None, fs=1.0, **kws):
     '''Butterworth highpass filter for xarray.DataArray input data.
@@ -58,9 +60,11 @@ def highpass(da, cutoff=0.25, order=2, dim=None, fs=1.0, **kws):
 
     kwargs = dict(axis=axis, cutoff=cutoff, order=order, fs=fs, **kws)
 
-    return xr.apply_ufunc(hp, da,
-        kwargs=kwargs, dask='allowed'
-        )
+    with xr.set_options(keep_attrs=True):
+        da_filtered = xr.apply_ufunc(hp, da,
+            kwargs=kwargs, dask='allowed'
+            )
+    return da_filtered
 
 def bandpass(da, cutoff=(0.125, 0.375), order=2, dim=None, fs=1.0, **kws):
     '''Butterworth bandpass filter for xarray.DataArray input data.
@@ -83,10 +87,12 @@ def bandpass(da, cutoff=(0.125, 0.375), order=2, dim=None, fs=1.0, **kws):
         axis = da.dims.index(dim)
 
     kwargs = dict(axis=axis, cutoff=cutoff, order=order, fs=fs, **kws)
-
-    return xr.apply_ufunc(bp, da,
-        kwargs=kwargs, dask='allowed'
-        )
+    
+    with xr.set_options(keep_attrs=True):
+        da_filtered = xr.apply_ufunc(bp, da,
+            kwargs=kwargs, dask='allowed'
+            )
+    return da_filtered
 
 if __name__ == '__main__':
 	from wyconfig import *

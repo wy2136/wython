@@ -65,7 +65,7 @@ def tracks_in_basin(ds, basin):
     
     return in_basin
 
-def mask_basin(da, basin):
+def wherebasin(da, basin):
     '''mask the input DataArray da by a given basin (e.g. 'NA'). da has lon/lat coordinates'''
     bs = tc_basins()
     return da.where( bs.mask(da) == bs.map_keys(basin) )

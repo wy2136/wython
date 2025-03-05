@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # Wenchang Yang (wenchang@princeton.edu)
 # Fri May 17 23:10:38 EDT 2019
+#wy2025-01-15: update due to FLOR experiments moved from MODEL_OUT/ to MODEL_OUT/FLOR/
 #wy2024-02-13: change the default behavior of n_storms_bound to be the maximum number of storms in the txt file
 #wy2024-02-09: add modeler parameter for experiments from other modelers
 #wy2021-05-17: add boolean param hour24 tc_read and tc_tracks; default is True to be compatible with old versions; if False, hour 00 will be used and track points at the end of the year will appear in the begining of the next year, e.g. 2000-12-31:24 -> 2001-01-01:00
-import datetime, glob, sys
+import datetime, glob, sys, os.path
 import numpy as np, xarray as xr, pandas as pd
 
 def tc_read(ifile, n_storms_bound=None, hour24=True):
@@ -102,16 +103,23 @@ def _tc_file(expname, year, en=None, track_tag=None, model='FLOR', username='wen
         en(=None)
         model(='FLOR')
         username(='wenchang')
+        storm_type(='TS')
+        modeler(=None)
     Return: filename'''
     if expname in ('era5', 'ERA5'):
         pdir = f'/tigress/{username}/data/era5'
     else:
-        if model in ('FLOR', 'flor'):
-            pdir = f'/tigress/{username}/MODEL_OUT/{expname}'
-            if modeler is not None: pdir = f'/tigress/wenchang/analysis/TC/modelers/{modeler}/{expname}' # for experiments run by other users
-        else:
-            pdir = f'/tigress/{username}/MODEL_OUT/{model}/{expname}'
-            if modeler is not None: pdir = f'/tigress/wenchang/analysis/TC/modelers/{modeler}/{model}/{expname}' # for experiments run by other users
+        #if model in ('FLOR', 'flor'):
+        #    pdir = f'/tigress/{username}/MODEL_OUT/{expname}'
+        #    if modeler is not None: pdir = f'/tigress/wenchang/analysis/TC/modelers/{modeler}/{expname}' # for experiments run by other users
+        #else:
+        #    pdir = f'/tigress/{username}/MODEL_OUT/{model}/{expname}'
+        #    if modeler is not None: pdir = f'/tigress/wenchang/analysis/TC/modelers/{modeler}/{model}/{expname}' # for experiments run by other users
+        #wy20250115
+        pdir = f'/tigress/{username}/MODEL_OUT/{model}/{expname}'
+        if not os.path.exists(os.path.join(pdir, 'analysis_lmh')): #TC analysis results haven't been moved to model_out yet (still in work directory)
+            pdir = f'/home/{username}/{model}/work/{expname}/TC'
+        if modeler is not None: pdir = f'/tigress/wenchang/analysis/TC/modelers/{modeler}/{model}/{expname}' # for experiments run by other users
         if en is not None:
             pdir = f'{pdir}/en{en:02d}'
 

@@ -7,7 +7,7 @@ from .accessor import StormAccessor
 
 # old interface. keep xtc compatible to old scripts
 from .tracks import tc_read, tc_tracks
-from .basins import tc_basins, tracks_in_basin
+from .basins import tc_basins, tracks_in_basin, wherebasin
 from .counts import tc_count
 from .ace import tc_ace, tc_ace_density
 from .density import tc_density
